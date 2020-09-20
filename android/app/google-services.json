@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "957005560748",
+    "firebase_url": "https://pick-2fa58.firebaseio.com",
+    "project_id": "pick-2fa58",
+    "storage_bucket": "pick-2fa58.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:957005560748:android:23e30282d01d64ab7e1809",
+        "android_client_info": {
+          "package_name": "com.zoe.pick_delivery"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "957005560748-5naim73q7s5gpnk6bl0o18d8lkqbij5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHe07MQTagRYPDPy2zbvg-kfZqVGp36iU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "957005560748-5naim73q7s5gpnk6bl0o18d8lkqbij5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
