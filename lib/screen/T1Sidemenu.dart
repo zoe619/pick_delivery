@@ -1,11 +1,24 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pick_delivery/model/user.dart';
+import 'package:pick_delivery/model/user_data.dart';
+import 'package:pick_delivery/screen/T1Dashboard.dart';
+import 'package:pick_delivery/screen/T1Listing.dart';
+import 'package:pick_delivery/screen/T1Login.dart';
+import 'package:pick_delivery/screen/T1Profile.dart';
+import 'package:pick_delivery/services/auth_service.dart';
+import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
 import 'package:pick_delivery/utils/T1Images.dart';
 import 'package:pick_delivery/utils/T1Strings.dart';
 import 'package:pick_delivery/utils/T1Widget.dart';
+import 'package:provider/provider.dart';
 
-class T1SideMenu extends StatefulWidget {
+class T1SideMenu extends StatefulWidget
+{
   static var tag = "/T1SideMenu";
 
   @override
@@ -14,11 +27,30 @@ class T1SideMenu extends StatefulWidget {
   }
 }
 
-class T1SideMenuState extends State<T1SideMenu> {
-  var isCollpased = true;
+class T1SideMenuState extends State<T1SideMenu>
+{
+  var isCollpased = false;
   final Duration duration = Duration(milliseconds: 300);
+  String userId;
 
-  Widget menuItem(String name) {
+  User user = new User();
+  @override
+  initState(){
+    super.initState();
+    userId = Provider.of<UserData>(context, listen: false).currentUserId;
+    _setupProfileUser();
+  }
+
+  _setupProfileUser() async
+  {
+    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    setState(() {
+      user = profileUser;
+    });
+  }
+
+  Widget menuItem(String name)
+  {
     return Column(
       children: <Widget>[
         SizedBox(height: 10),
@@ -46,7 +78,9 @@ class T1SideMenuState extends State<T1SideMenu> {
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.width;
     return Scaffold(
-        body: Stack(
+
+        body:
+        user == null ? Platform.isIOS ? CupertinoActivityIndicator() : CircularProgressIndicator() : Stack(
       children: <Widget>[
         SafeArea(
           child: SingleChildScrollView(
@@ -74,48 +108,53 @@ class T1SideMenuState extends State<T1SideMenu> {
                     SizedBox(
                       width: 16,
                     ),
-                    text(t1_user_name, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal),
-                    text(t1_user_email, textColor: t1_colorPrimary, fontSize: textSizeMedium),
+                    text(user.name, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal),
+                    text(user.email, textColor: t1_colorPrimary, fontSize: textSizeMedium),
                     SizedBox(
                       height: 24,
                     ),
-                    menuItem(t1_lbl_connect_to_pc),
-                    menuItem(t1_lbl_share_files),
-                    menuItem(t1_lbl_profile_edit),
-                    menuItem(t1_lbl_refer_earn),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            text(t1_lbl_offers, textColor: t1TextColorPrimary, fontFamily: fontMedium),
-                            Container(
-                              margin: EdgeInsets.only(left: 4),
-                              padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-                              decoration: boxDecoration(bgColor: t1_red, radius: 4),
-                              child: text(t1_lbl_new, fontSize: textSizeSmall, textColor: t1_white),
-                            )
-                          ],
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_right,
-                          color: t1TextColorPrimary,
-                        )
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Divider(
-                      height: 0.5,
-                      color: t1_view_color,
-                    ),
-                    menuItem(t1_lbl_help),
-                    menuItem(t1_lbl_about_us),
-                    menuItem(t1_lbl_setting),
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_)=>T1Dashboard(),
+                        ));
+                      },
+                        child: menuItem('Home')),
+                    menuItem('Notifications'),
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_)=>T1Listing(),
+                        ));
+                      },
+                        child: menuItem('Delivery History')),
+                    menuItem('Payments'),
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_)=>T1Profile(),
+                        ));
+                      },
+                        child: menuItem('Profile')),
+                    menuItem('Reach us'),
+                    SizedBox(height: 20),
+
+
+
                     Expanded(
                       child: Container(
                         margin: EdgeInsets.only(top: 50),
-                        child: text(t1_lbl_logout, textColor: t1_colorPrimary, fontFamily: fontSemibold, fontSize: textSizeNormal),
+                        child: GestureDetector(
+                          onTap: (){
+                            Provider.of<AuthService>(context, listen: false).logout();
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => T1Login()),
+                                  (Route<dynamic> route) => false,
+                            );
+                          },
+                            child: text(t1_lbl_logout, textColor: t1_colorPrimary,
+                                fontFamily: fontSemibold, fontSize: textSizeNormal)),
                       ),
                     )
                   ],
@@ -142,6 +181,7 @@ class T1SideMenuState extends State<T1SideMenu> {
                   onPressed: () {
                     setState(() {
                       isCollpased = !isCollpased;
+                      Navigator.pop(context);
                     });
                   },
                 ),

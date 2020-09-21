@@ -94,7 +94,7 @@ class MyApp extends StatelessWidget {
             }
             if(snapshot.hasData)
             {
-//               return Map2();
+
               Provider.of<UserData>(context, listen: false).currentUserId
               = snapshot.data.uid;
               return T1Dashboard();

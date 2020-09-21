@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pick_delivery/model/user_data.dart';
+import 'package:pick_delivery/screen/T1Sidemenu.dart';
 import 'package:pick_delivery/screen/location.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -468,7 +469,31 @@ class T1DashboardState extends State<T1Dashboard>
               ),
             ),
           ),
-
+          SafeArea(
+            child: Container(
+              color: t1_white,
+              padding: EdgeInsets.only(left: 14),
+              width: MediaQuery.of(context).size.width,
+              height: 60,
+              child: Row(
+                children: <Widget>[
+                  GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_)=>T1SideMenu(),
+                        ));
+                      },
+                      child: SvgPicture.asset(t1_menu, width: 25, height: 25)),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                    child: Center(
+                      child: headerText('Pick Delivery'),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
 
         ],
       ),
