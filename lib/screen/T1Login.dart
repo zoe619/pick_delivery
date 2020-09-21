@@ -104,7 +104,7 @@ class _T1LoginState extends State<T1Login>
         if(login != "")
         {
           Navigator.push(context, MaterialPageRoute(
-            builder: (_)=>T1Dashboard(userId: login),
+            builder: (_)=>T1Dashboard(),
           ));
         }
         else{

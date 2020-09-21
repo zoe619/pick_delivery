@@ -1,13 +1,25 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
+import 'package:pick_delivery/model/user_data.dart';
+import 'package:pick_delivery/screen/T1Dashboard.dart';
+import 'package:pick_delivery/utils/T1Colors.dart';
+import 'package:pick_delivery/utils/T1Constant.dart';
+import 'package:pick_delivery/utils/T1Widget.dart';
+import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-class Map2 extends StatefulWidget {
+class Map2 extends StatefulWidget
+{
+  final int id;
+
+  Map2({this.id});
   @override
   _MapState createState() => _MapState();
 }
@@ -30,7 +42,11 @@ class _MapState extends State<Map2>
   Set<Marker> allMarkers = {};
   BitmapDescriptor _markerIcon;
 
-  var finalAddress;
+  final locationScaffoldKey = GlobalKey<ScaffoldState>();
+
+  GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: "AIzaSyD6dxWCuUM3KXxzuaDFn8KErN4-U2AWIIo");
+
+  var _finalAddress;
 
   Set<Marker> _markers2 = HashSet<Marker>();
 
@@ -39,7 +55,6 @@ class _MapState extends State<Map2>
     // TODO: implement initState
     super.initState();
     _getUserLocation();
-
 
   }
 
@@ -51,9 +66,13 @@ class _MapState extends State<Map2>
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
+          key: locationScaffoldKey,
           appBar: AppBar(
-            title: Center(child: Text('Pick delivery')),
-            backgroundColor: Theme.of(context).primaryColor,
+            title: Center(child: Text('Pick delivery',
+              style: TextStyle(
+                color: t1TextColorPrimary
+              ),)),
+            backgroundColor: t1_white,
 
           ),
           body: _initialPosition == null ? Container(
@@ -64,7 +83,7 @@ class _MapState extends State<Map2>
           ) :
 
           Stack(
-      children: <Widget>[
+         children: <Widget>[
         GoogleMap(
           initialCameraPosition: CameraPosition(target: _initialPosition, zoom: 10.0),
           onMapCreated: onCreated,
@@ -115,6 +134,16 @@ class _MapState extends State<Map2>
             ),
             child: Flexible(
               child: TextField(
+                onTap: ()async{
+                  Prediction p = await PlacesAutocomplete.show(
+                      context: context,
+                      apiKey: "AIzaSyD6dxWCuUM3KXxzuaDFn8KErN4-U2AWIIo",
+                      mode: Mode.overlay, // Mode.fullscreen
+                      onError: onError,
+                      language: "en",
+                      components: [new Component(Component.country, "ng")]);
+                      displayPrediction(p, locationScaffoldKey.currentState);
+                },
                 maxLines: 3,
                 cursorColor: Colors.black,
                 controller: locationController,
@@ -132,6 +161,59 @@ class _MapState extends State<Map2>
                 ),
               ),
             ),
+          ),
+        ),
+
+        Positioned(
+          bottom: 15.0,
+          right: 15.0,
+          left: 15.0,
+          child: Container(
+            height: 50.0,
+            width: double.infinity,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(3.0),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.grey,
+                      offset: Offset(1.0, 5.0),
+                      blurRadius: 15.0,
+                      spreadRadius: 3
+                  )
+                ]
+
+            ),
+            child:Material(
+                elevation: 2,
+                shadowColor: Colors.deepOrangeAccent[200],
+                borderRadius: new BorderRadius.circular(40.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: MaterialButton(
+                      child: text("Confirm", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                      textColor: t1_white,
+                      shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
+                      color: t1_colorPrimary, onPressed: ()
+                      {
+
+                         if(widget.id == 1)
+                         {
+
+                           Provider.of<UserData>(context, listen: false).pickAddress
+                           = _finalAddress;
+                         }
+                         else if(widget.id == 2){
+                           Provider.of<UserData>(context, listen: false).deliveryAddress
+                           = _finalAddress;
+                         }
+
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_)=>T1Dashboard(mapId: widget.id),
+                        ));
+                      }
+                  ),
+                )),
           ),
         ),
 //        button(_onMapTypePressed, Icons.map),
@@ -249,10 +331,33 @@ class _MapState extends State<Map2>
      var address1 = address.first.featureName;
      var address2 = address.first.addressLine;
      setState(() {
-       finalAddress = address2;
-       finalAddress == null ? locationController.text = "getting address.." :
-       locationController.text = finalAddress;
+       _finalAddress = address2;
+       _finalAddress == null ? locationController.text = "getting address.." :
+       locationController.text = _finalAddress;
      });
+     if(widget.id == 1)
+     {
+       Provider.of<UserData>(context, listen: false).pickLatitude = lat.latitude;
+       Provider.of<UserData>(context, listen: false).pickLongitude = lat.longitude;
+     }
+     else if(widget.id == 2)
+     {
+       Provider.of<UserData>(context, listen: false).deliveryLatitude = lat.latitude;
+       Provider.of<UserData>(context, listen: false).deliveryLongitude = lat.longitude;
+
+       if(Provider.of<UserData>(context, listen: false).pickLatitude != null &&
+           Provider.of<UserData>(context, listen: false).pickLongitude != null)
+       {
+         double distanceInMeters = distanceBetween(Provider.of<UserData>(context, listen: false).pickLatitude,
+             Provider.of<UserData>(context, listen: false).pickLongitude,
+             Provider.of<UserData>(context, listen: false).deliveryLatitude,
+             Provider.of<UserData>(context, listen: false).pickLongitude);
+
+         Provider.of<UserData>(context, listen: false).distance = distanceInMeters;
+
+       }
+
+     }
 
   }
 
@@ -263,5 +368,56 @@ class _MapState extends State<Map2>
       return element.first;
     });
 
+  }
+
+  void onError(PlacesAutocompleteResponse response)
+  {
+    locationScaffoldKey.currentState.showSnackBar(
+      SnackBar(content: Text(response.errorMessage)),
+    );
+  }
+
+  Future<Null> displayPrediction(Prediction p, ScaffoldState scaffold) async
+  {
+    if (p != null) {
+      // get detail (lat/lng)
+      PlacesDetailsResponse detail = await _places.getDetailsByPlaceId(p.placeId);
+      final lat = detail.result.geometry.location.lat;
+      final lng = detail.result.geometry.location.lng;
+
+//      scaffold.showSnackBar(
+//        SnackBar(content: Text("${p.description} - $lat/$lng")),
+//      );
+      setState(()
+      {
+        locationController.text = p.description;
+        _finalAddress = locationController.text;
+
+        if(widget.id == 1)
+        {
+          Provider.of<UserData>(context, listen: false).pickLatitude = lat;
+          Provider.of<UserData>(context, listen: false).pickLongitude = lng;
+        }
+        else if(widget.id == 2)
+        {
+          Provider.of<UserData>(context, listen: false).deliveryLatitude = lat;
+          Provider.of<UserData>(context, listen: false).deliveryLongitude = lng;
+
+          if(Provider.of<UserData>(context, listen: false).pickLatitude != null &&
+              Provider.of<UserData>(context, listen: false).pickLongitude != null)
+          {
+            double distanceInMeters = distanceBetween(Provider.of<UserData>(context, listen: false).pickLatitude,
+                Provider.of<UserData>(context, listen: false).pickLongitude,
+                Provider.of<UserData>(context, listen: false).deliveryLatitude,
+                Provider.of<UserData>(context, listen: false).pickLongitude);
+
+            Provider.of<UserData>(context, listen: false).distance = distanceInMeters;
+
+          }
+
+        }
+      });
+
+    }
   }
 }

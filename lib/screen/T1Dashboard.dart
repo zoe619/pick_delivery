@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pick_delivery/model/user_data.dart';
 import 'package:pick_delivery/screen/location.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -9,12 +10,17 @@ import 'package:pick_delivery/utils/T1Extension.dart';
 import 'package:pick_delivery/utils/T1Images.dart';
 import 'package:pick_delivery/utils/T1Strings.dart';
 import 'package:pick_delivery/utils/T1Widget.dart';
+import 'package:provider/provider.dart';
 
 class T1Dashboard extends StatefulWidget
 {
   static var tag = "/T1Dashboard";
   String userId;
-  T1Dashboard({this.userId});
+  String pickAddress;
+  String destinationAddress;
+  int mapId;
+
+  T1Dashboard({this.mapId});
 
   @override
   State<StatefulWidget> createState() {
@@ -30,232 +36,286 @@ class T1DashboardState extends State<T1Dashboard>
   final _pickFormKey = GlobalKey<FormState>();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone, delivery_email;
+  final _mapFormKey = GlobalKey<FormState>();
+
+  String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone, delivery_email, note;
   bool _isLoading = false;
   bool pick_show = false;
   bool delivery_show = false;
+  bool note_show = false;
 
   Icon pick_icon = Icon(Icons.add);
   Icon delivery_icon = Icon(Icons.add);
+  Icon note_icon = Icon(Icons.add);
+  double distance;
+
+
+
+  TextEditingController pickController = new TextEditingController();
+  TextEditingController destinationController = new TextEditingController();
+  TextEditingController testController = new TextEditingController();
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    print("inside home: "+widget.userId);
+
+    if(widget.mapId == 1)
+    {
+      pick_address = Provider.of<UserData>(context, listen: false).pickAddress;
+      pick_show = true;
+      pickController.text = Provider.of<UserData>(context, listen: false).pickAddress;
+    }
+    else{
+      pickController.text = Provider.of<UserData>(context, listen: false).pickAddress;
+    }
+    if(widget.mapId == 2)
+    {
+      delivery_address = Provider.of<UserData>(context, listen: false).deliveryAddress;
+      delivery_show = true;
+      destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
+    }
+    else{
+      destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
+    }
+    if(Provider.of<UserData>(context, listen: false).distance != null)
+    {
+      distance = Provider.of<UserData>(context, listen: false).distance;
+      testController.text = distance.toString();
+    }
+
+
   }
 
   pickupForm()
   {
-    return Form(
-      child: Column(
-        children: <Widget>[
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: GestureDetector(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_)=>Map2(),
-                  ));
-                },
-                child: TextFormField(
-                  keyboardType: TextInputType.text,
-                  validator:(input)=>
-                  input.trim().isEmpty  ? 'Input field is empty' : null,
-                  onSaved:(input)=>pick_address = input,
-                  style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                  obscureText: false,
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                    hintText: 'Pick up address',
-                    filled: true,
-                    fillColor: t1_edit_text_background,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(40),
-                      borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(40),
-                      borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                    ),
-                  ),
+    return Column(
+      children: <Widget>[
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_)=>Map2(id:1),
+                ));
+              },
+              readOnly: true,
+              controller: pickController,
+              keyboardType: TextInputType.text,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>pick_address = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Pick up address',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16.0),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: TextFormField(
-                keyboardType: TextInputType.text,
-                validator:(input)=>
-                input.trim().isEmpty  ? 'Input field is empty' : null,
-                onSaved:(input)=>item = input,
-                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                obscureText: false,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Item to pick up',
-                  filled: true,
-                  fillColor: t1_edit_text_background,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: TextFormField(
-                keyboardType: TextInputType.phone,
-                validator:(input)=>
-                input.trim().isEmpty  ? 'Input field is empty' : null,
-                onSaved:(input)=>phone = input,
-                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                obscureText: false,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Senders phone',
-                  filled: true,
-                  fillColor: t1_edit_text_background,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
+              ),
+            )
+        ),
+        SizedBox(height: 16.0),
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              keyboardType: TextInputType.text,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>item = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Item to pick up',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+              ),
+            )
+        ),
+        SizedBox(height: 16),
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              keyboardType: TextInputType.phone,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>phone = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Sender\'s phone',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+              ),
+            )
+        ),
+        SizedBox(height: 16),
 
-        ],
-      ),
+      ],
     );
 
   }
   deliveryForm()
   {
-    return Form(
-      child: Column(
-        children: <Widget>[
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: TextFormField(
-                keyboardType: TextInputType.text,
-                validator:(input)=>
-                input.trim().isEmpty  ? 'Input field is empty' : null,
-                onSaved:(input)=>delivery_address = input,
-                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                obscureText: false,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Delivery address',
-                  filled: true,
-                  fillColor: t1_edit_text_background,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
+    return Column(
+      children: <Widget>[
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_)=>Map2(id:2),
+                ));
+              },
+              controller: destinationController,
+              keyboardType: TextInputType.text,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>delivery_address = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Delivery address',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16.0),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: TextFormField(
-                keyboardType: TextInputType.text,
-                validator:(input)=>
-                input.trim().isEmpty  ? 'Input field is empty' : null,
-                onSaved:(input)=>delivery_name = input,
-                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                obscureText: false,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Receivers name',
-                  filled: true,
-                  fillColor: t1_edit_text_background,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: TextFormField(
-                keyboardType: TextInputType.phone,
-                validator:(input)=>
-                input.trim().isEmpty  ? 'Input field is empty' : null,
-                onSaved:(input)=>delivery_phone = input,
-                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                obscureText: false,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Receivers phone',
-                  filled: true,
-                  fillColor: t1_edit_text_background,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
+              ),
+            )
+        ),
+        SizedBox(height: 16.0),
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              keyboardType: TextInputType.text,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>delivery_name = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Receiver\'s name',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
-              child: TextFormField(
-                keyboardType: TextInputType.phone,
-                validator:(input)=>
-                input.trim().isEmpty  ? 'Input field is empty' : null,
-                onSaved:(input)=>delivery_phone = input,
-                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-                obscureText: false,
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Receivers email',
-                  filled: true,
-                  fillColor: t1_edit_text_background,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                  ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
                 ),
-              )
-          ),
-          SizedBox(height: 16),
+              ),
+            )
+        ),
+        SizedBox(height: 16),
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              keyboardType: TextInputType.phone,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>delivery_phone = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Receiver\'s phone',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+              ),
+            )
+        ),
+        SizedBox(height: 16),
+        Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextFormField(
+              keyboardType: TextInputType.phone,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Input field is empty' : null,
+              onSaved:(input)=>delivery_email = input,
+              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+              obscureText: false,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                hintText: 'Receiver\'s email',
+                filled: true,
+                fillColor: t1_edit_text_background,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                ),
+              ),
+            )
+        ),
+        SizedBox(height: 16),
 
-        ],
-      ),
+      ],
     );
 
   }
+
+  noteForm(){
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child: TextFormField(
+          onSaved:(input)=>note = input,
+          style: TextStyle(fontSize: 18),
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
+            hintText: 'extra optional note',
+
+          )));
+  }
+
+
   @override
   Widget build(BuildContext context)
   {
@@ -280,7 +340,10 @@ class T1DashboardState extends State<T1Dashboard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          text('Create a delivery', textColor: t1TextColorPrimary, fontSize: textSizeNormal, fontFamily: fontBold),
+                          Center(
+                            child: text('Start a delivery', textColor: t1TextColorPrimary,
+                                fontSize: textSizeNormal, fontFamily: fontBold),
+                          ),
                           SizedBox(height: 10),
                           Padding(
                             padding: const EdgeInsets.only(left: 10.0, right: 10),
@@ -288,165 +351,125 @@ class T1DashboardState extends State<T1Dashboard>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>
                               [
+
                                 Container(
                                   decoration: BoxDecoration(shape: BoxShape.rectangle, color: Colors.white),
                                   width: width,
-                                  height: height,
-                                  child: Column(
-                                    children: <Widget>[
-                                      Card(
-                                        child: ListTile(
-                                          leading: Icon(Icons.local_grocery_store),
-                                          title: Text('Pick-Up Details'),
-                                          trailing: GestureDetector(
-                                              onTap: (){
-                                                setState(() {
-                                                  if(pick_show == false)
-                                                  {
-                                                    pick_show = true;
-                                                    pick_icon = Icon(Icons.cancel);
-                                                  }
-                                                  else{
-                                                    pick_show = false;
-                                                    pick_icon = Icon(Icons.add);
-
-                                                  }
-
-                                                });
-                                              },
-                                              child: pick_icon),
-
-                                        ),
-                                      ),
-                                      SizedBox(height: 5.0),
-                                      pick_show == true ? pickupForm() : SizedBox.shrink(),
-                                      Card(
-                                        child: ListTile(
-                                          leading: Icon(Icons.directions_bike),
-                                          title: Text('Delivery Details'),
+                                  height: height * 1.2,
+                                  child: Form(
+                                    key: _mapFormKey,
+                                    child: Column(
+                                      children: <Widget>[
+                                        Card(
+                                          child: ListTile(
+                                            leading: Icon(Icons.local_grocery_store),
+                                            title: Text('Pick-Up Details'),
                                             trailing: GestureDetector(
                                                 onTap: (){
                                                   setState(() {
-                                                    if(delivery_show == false){
-                                                      delivery_show = true;
-                                                      delivery_icon = Icon(Icons.cancel);
+                                                    if(pick_show == false)
+                                                    {
+                                                      pick_show = true;
+                                                      pick_icon = Icon(Icons.cancel);
                                                     }
                                                     else{
-                                                      delivery_show = false;
-                                                      delivery_icon = Icon(Icons.add);
+                                                      pick_show = false;
+                                                      pick_icon = Icon(Icons.add);
+
                                                     }
+
+
                                                   });
                                                 },
-                                                child: delivery_icon)
-                                        ),
-                                      ),
-                                      SizedBox(height: 5.0),
-                                      delivery_show == true ? deliveryForm() : SizedBox.shrink(),
-                                      Card(
-                                        child: ListTile(
-                                          leading: Icon(Icons.note),
-                                          title: Text('Note'),
-                                          trailing: Icon(Icons.add),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
+                                                child: pick_icon),
 
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        pick_show == true ? pickupForm() : SizedBox.shrink(),
+                                        Card(
+                                          child: ListTile(
+                                            leading: Icon(Icons.directions_bike),
+                                            title: Text('Delivery Details'),
+                                              trailing: GestureDetector(
+                                                  onTap: (){
+                                                    setState(() {
+                                                      if(delivery_show == false){
+                                                        delivery_show = true;
+                                                        delivery_icon = Icon(Icons.cancel);
+                                                      }
+                                                      else{
+                                                        delivery_show = false;
+                                                        delivery_icon = Icon(Icons.add);
+                                                      }
+                                                    });
+
+
+                                                  },
+                                                  child: delivery_icon)
+
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        delivery_show == true ? deliveryForm() : SizedBox.shrink(),
+                                        Card(
+                                          child: ListTile(
+                                            leading: Icon(Icons.note),
+                                            title: Text('Note'),
+                                            trailing: GestureDetector(
+                                                onTap: (){
+                                                  setState(() {
+                                                    if(note_show == false){
+                                                       note_show = true;
+                                                       note_icon = Icon(Icons.cancel);
+                                                    }
+                                                    else{
+                                                      note_show = false;
+                                                      note_icon = Icon(Icons.add);
+                                                    }
+                                                  });
+
+
+                                                },
+                                                child: note_icon),
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        note_show == true ? noteForm() : SizedBox.shrink()
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 16.0),
+                             Material(
+                                elevation: 2,
+                                shadowColor: Colors.deepOrangeAccent[200],
+                                borderRadius: new BorderRadius.circular(40.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 60,
+                                  child: MaterialButton(
+                                      child: text("Make payment", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                                      textColor: t1_white,
+                                      shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
+                                      color: t1_colorPrimary, onPressed:(){}
+
+                                      ),
+                                 ),
+                                ),
                               ],
                             ),
                           ),
-                          SizedBox(height: 24),
-                          text(t1_lbl_send_file, textColor: t1TextColorPrimary, fontSize: textSizeNormal, fontFamily: fontBold),
-                          SizedBox(height: 16),
-                          Container(
-                            alignment: Alignment.center,
-                            child: Stack(
-                              children: <Widget>[
-                                Image.asset(t1_ic_home_image, width: width / 2, height: width / 2.7),
-                                Container(
-                                  decoration: BoxDecoration(shape: BoxShape.circle, color: t1_color_primary_light),
-                                  width: width / 3.5,
-                                  height: width / 3.5,
-                                  alignment: Alignment.center,
-                                  margin: EdgeInsets.only(left: width / 30),
-                                  padding: EdgeInsets.all(width / 18),
-                                  child: text(t1_lbl_send_files, textColor: t1_colorPrimary, fontSize: textSizeNormal, maxLine: 2),
-                                )
-                              ],
-                            ),
-                          )
+
                         ],
                       )),
-                  SizedBox(
-                    height: height * 0.1,
-                  )
+
                 ],
               ),
             ),
           ),
-          SafeArea(
-            child: Container(
-              color: t1_white,
-              padding: EdgeInsets.only(left: 14),
-              width: MediaQuery.of(context).size.width,
-              height: 60,
-              child: Row(
-                children: <Widget>[
-                  SvgPicture.asset(t1_menu, width: 25, height: 25),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Center(
-                      child: headerText(t1_lbl_home),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Stack(
-              alignment: Alignment.topCenter,
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(top: 30),
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: t1_white,
-                    boxShadow: [BoxShadow(color: shadow_color, blurRadius: 10, spreadRadius: 2, offset: Offset(0, 3.0))],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        tabItem(1, t1_home),
-                        tabItem(2, t1_notification),
-                        Container(
-                          width: 45,
-                          height: 45,
-                        ),
-                        tabItem(3, t1_settings),
-                        tabItem(4, t1_user)
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 55,
-                  width: 55,
-                  child: FloatingActionButton(
-                    backgroundColor: t1_colorPrimary,
-                    child: Icon(
-                      Icons.mic,
-                      color: t1_white,
-                    ),
-                  ),
-                )
-              ],
-            ),
-          )
+
+
         ],
       ),
     );
@@ -519,67 +542,3 @@ class Slider extends StatelessWidget {
     );
   }
 }
-
-/*
-Container(
-child: Column(children: <Widget>[
-SizedBox(height: 50),
-Container(
-margin: EdgeInsets.fromLTRB(16, 10, 16, 10),
-child: Column(
-children: <Widget>[
-rowHeading("Media"),
-SizedBox(height: 16),
-Row(
-mainAxisAlignment: MainAxisAlignment.spaceAround,
-children: <Widget>[
-new Container(
-decoration: new BoxDecoration(
-color: t1_colorPrimary_light,
-shape: BoxShape.circle,
-),
-child: Icon(
-Icons.insert_drive_file,
-color: t1_colorPrimary,
-size: 40,
-),
-padding: EdgeInsets.all(25),
-),
-new Container(
-decoration: new BoxDecoration(
-color: t1_colorPrimary_light,
-shape: BoxShape.circle,
-),
-child: Icon(Icons.videocam,
-color: t1_colorPrimary, size: 40),
-padding: EdgeInsets.all(25),
-),
-new Container(
-decoration: new BoxDecoration(
-color: t1_colorPrimary_light,
-shape: BoxShape.circle,
-),
-child:
-Icon(Icons.image, color: t1_colorPrimary, size: 40),
-padding: EdgeInsets.all(25),
-),
-],
-),
-//              SizedBox(height: 30),
-//              rowHeading("Send Media"),
-//              Container(
-//                margin: new EdgeInsets.symmetric(horizontal: 16.0),
-//                alignment: FractionalOffset.center,
-//                child: Stack(
-//                  children: <Widget>[
-//                    Image.asset(
-//                      'img/theme1_ic_home_image.png',
-//                      height: 300,
-//                      width: 300,
-//                    ),
-//                  ],
-//                ),
-//              ),
-],
-))
-]))*/
