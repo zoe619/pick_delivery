@@ -69,7 +69,7 @@ class MyApp extends StatelessWidget {
           /**Theme 1 screens routes*/
           T1Login.tag: (context) => T1Login(),
           'T1Signup': (context) => T1Signup(),
-          T1Profile.tag: (context) => T1Profile(),
+          'T1Profile': (context) => T1Profile(),
           T1Dashboard.tag: (context) => T1Dashboard(),
           T1Listing.tag: (context) => T1Listing(),
           T1Dialog.tag: (context) => T1Dialog(),

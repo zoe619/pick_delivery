@@ -207,7 +207,7 @@ class _MapState extends State<Map2>
                            Provider.of<UserData>(context, listen: false).deliveryAddress
                            = _finalAddress;
                          }
-
+                         _calculateDistance();
                         Navigator.push(context, MaterialPageRoute(
                           builder: (_)=>T1Dashboard(mapId: widget.id),
                         ));
@@ -311,16 +311,6 @@ class _MapState extends State<Map2>
 
     }
 
-//    var locationOptions = LocationOptions(accuracy: LocationAccuracy.best, distanceFilter: 10);
-//    _streamSubscription = getPositionStream().listen(
-//            (Position position) {
-//          _position = position;
-//          final coordinates = new Coordinates(position.latitude, position.longitude);
-//          convertCoordinatesToAddress(coordinates).then((value)=>_address = value);
-//          _address == null ? locationController.text = "getting address" : locationController.text = _address.addressLine;
-//
-//        });
-
 
 
   }
@@ -344,18 +334,6 @@ class _MapState extends State<Map2>
      {
        Provider.of<UserData>(context, listen: false).deliveryLatitude = lat.latitude;
        Provider.of<UserData>(context, listen: false).deliveryLongitude = lat.longitude;
-
-       if(Provider.of<UserData>(context, listen: false).pickLatitude != null &&
-           Provider.of<UserData>(context, listen: false).pickLongitude != null)
-       {
-         double distanceInMeters = distanceBetween(Provider.of<UserData>(context, listen: false).pickLatitude,
-             Provider.of<UserData>(context, listen: false).pickLongitude,
-             Provider.of<UserData>(context, listen: false).deliveryLatitude,
-             Provider.of<UserData>(context, listen: false).pickLongitude);
-
-         Provider.of<UserData>(context, listen: false).distance = distanceInMeters;
-
-       }
 
      }
 
@@ -403,21 +381,26 @@ class _MapState extends State<Map2>
           Provider.of<UserData>(context, listen: false).deliveryLatitude = lat;
           Provider.of<UserData>(context, listen: false).deliveryLongitude = lng;
 
-          if(Provider.of<UserData>(context, listen: false).pickLatitude != null &&
-              Provider.of<UserData>(context, listen: false).pickLongitude != null)
-          {
-            double distanceInMeters = distanceBetween(Provider.of<UserData>(context, listen: false).pickLatitude,
-                Provider.of<UserData>(context, listen: false).pickLongitude,
-                Provider.of<UserData>(context, listen: false).deliveryLatitude,
-                Provider.of<UserData>(context, listen: false).pickLongitude);
-
-            Provider.of<UserData>(context, listen: false).distance = distanceInMeters;
-
-          }
-
         }
       });
 
     }
+  }
+  _calculateDistance()
+  {
+    if(Provider.of<UserData>(context, listen: false).pickLatitude != null &&
+        Provider.of<UserData>(context, listen: false).pickLongitude != null &&
+        Provider.of<UserData>(context, listen: false).deliveryLatitude != null &&
+        Provider.of<UserData>(context, listen: false).deliveryLongitude != null)
+    {
+      double distanceInMeters = distanceBetween(Provider.of<UserData>(context, listen: false).pickLatitude,
+          Provider.of<UserData>(context, listen: false).pickLongitude,
+          Provider.of<UserData>(context, listen: false).deliveryLatitude,
+          Provider.of<UserData>(context, listen: false).pickLongitude);
+
+      Provider.of<UserData>(context, listen: false).distance = distanceInMeters;
+
+    }
+
   }
 }

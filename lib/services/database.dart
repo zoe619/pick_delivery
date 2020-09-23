@@ -437,7 +437,7 @@ class DatabaseService
     }
   }
 
-  updateUser(String email, String phone, String name)async
+  updateUser(String name, String email, String phone)async
   {
 
     try{
@@ -445,7 +445,7 @@ class DatabaseService
       map['email'] = email;
       map['phone'] = phone;
       map['name'] = name;
-      String url = "https://mydstvgotvforselfservice.com/new_mobile/pizza/update.php";
+      String url = "https://monikonnect.com/new_mobile/pizza/update.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       if(response.statusCode == 200)
       {
@@ -469,19 +469,27 @@ class DatabaseService
 
   }
 
-  addSubscription(String brand, String bouquet, String month, String total, String iuc, String email, String reference)async
+  addDelivery(String senderEmail, String pickAddress, double distance, double amount,
+      double pickLatitude, double pickLongitude, double destinationLatitude, double destinationLongitude,
+      String deliveryName, String deliveryEmail, deliveryPhone, String destinationAddress, String note)async
   {
     try{
       var map = Map<String, dynamic>();
-      map['brand'] = brand;
-      map['bouquet'] = bouquet;
-      map['month'] = month;
-      map['total'] = total;
-      map['iuc'] = iuc;
-      map['email'] = email;
-      map['reference'] = reference;
+      map['senderEmail'] = senderEmail;
+      map['pickAddress'] = pickAddress;
+      map['distance'] = distance;
+      map['amount'] = amount;
+      map['pickLatitude'] = pickLatitude;
+      map['pickLongitude'] = pickLongitude;
+      map['destinationLatitude'] = destinationLatitude;
+      map['destinationLongitude'] = destinationLongitude;
+      map['deliveryName'] = deliveryName;
+      map['deliveryEmail'] = deliveryEmail;
+      map['deliveryPhone'] = deliveryPhone;
+      map['destinationAddress'] = destinationAddress;
+      map['note'] = note;
 
-      String url = "https://mydstvgotvforselfservice.com/new_mobile/pizza/sub.php";
+      String url = "https://monikonnect/new_mobile/pizza/sub.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 
 
@@ -694,7 +702,7 @@ class DatabaseService
   //   function to retrieve user from firestore based on userId
   Future<User> getUserWithId(String userId) async
   {
-    DocumentSnapshot userDocSnapshot = await usersRef.document(userId).get();
+    DocumentSnapshot userDocSnapshot = await usersRef.doc(userId).get();
     if(userDocSnapshot.exists)
     {
       return User.fromDoc(userDocSnapshot);
@@ -705,9 +713,9 @@ class DatabaseService
 
   static void updateUserFirebase(User user)
   {
-    usersRef.document(user.id).updateData({
-      'phone' : user.phone,
-      'name': user.name
+    usersRef.doc(user.id).update({
+      'name' : user.name,
+      'phone':user.phone
     });
   }
 

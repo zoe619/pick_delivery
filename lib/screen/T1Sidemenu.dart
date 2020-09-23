@@ -108,8 +108,8 @@ class T1SideMenuState extends State<T1SideMenu>
                     SizedBox(
                       width: 16,
                     ),
-                    text(user.name, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal),
-                    text(user.email, textColor: t1_colorPrimary, fontSize: textSizeMedium),
+                   user.name != null ? text(user.name, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal) : SizedBox.shrink(),
+                   user.email != null  ? text(user.email, textColor: t1_colorPrimary, fontSize: textSizeMedium) : SizedBox.shrink(),
                     SizedBox(
                       height: 24,
                     ),

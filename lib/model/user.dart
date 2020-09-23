@@ -7,12 +7,12 @@ class User
   String name;
   String email;
   String phone;
-  String pick;
+  String type;
 
 
 
 
-  User({this.id, this.name, this.email, this.phone, this.pick});
+  User({this.id, this.name, this.email, this.phone, this.type});
 
 //  factory User.fromJson(Map<String, dynamic> json)
 //  {
@@ -30,10 +30,10 @@ class User
   {
     return User(
       id: doc.id,
-      name: doc.get('names'),
+      name: doc.get('name'),
       email: doc.get('email'),
       phone: doc.get('phone'),
-      pick: doc.get('pick')
+      type: doc.get('type')
 
     );
   }

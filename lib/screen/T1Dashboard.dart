@@ -1,10 +1,16 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/model/user_data.dart';
 import 'package:pick_delivery/screen/T1Sidemenu.dart';
 import 'package:pick_delivery/screen/location.dart';
+import 'package:pick_delivery/screen/pay.dart';
+import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
 import 'package:pick_delivery/utils/T1Extension.dart';
@@ -48,13 +54,17 @@ class T1DashboardState extends State<T1Dashboard>
   Icon pick_icon = Icon(Icons.add);
   Icon delivery_icon = Icon(Icons.add);
   Icon note_icon = Icon(Icons.add);
-  double distance;
+  double distance, amount;
 
 
 
   TextEditingController pickController = new TextEditingController();
   TextEditingController destinationController = new TextEditingController();
-  TextEditingController testController = new TextEditingController();
+  TextEditingController itemController = new TextEditingController();
+  TextEditingController pickPhoneController = new TextEditingController();
+
+  String userId;
+  User user = new User();
 
 
   @override
@@ -66,6 +76,7 @@ class T1DashboardState extends State<T1Dashboard>
     {
       pick_address = Provider.of<UserData>(context, listen: false).pickAddress;
       pick_show = true;
+      pick_icon = Icon(Icons.cancel);
       pickController.text = Provider.of<UserData>(context, listen: false).pickAddress;
     }
     else{
@@ -75,6 +86,7 @@ class T1DashboardState extends State<T1Dashboard>
     {
       delivery_address = Provider.of<UserData>(context, listen: false).deliveryAddress;
       delivery_show = true;
+      delivery_icon = Icon(Icons.cancel);
       destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
     }
     else{
@@ -83,10 +95,19 @@ class T1DashboardState extends State<T1Dashboard>
     if(Provider.of<UserData>(context, listen: false).distance != null)
     {
       distance = Provider.of<UserData>(context, listen: false).distance;
-      testController.text = distance.toString();
+      distance = distance / 1000;
+      amount = distance * 400;
     }
+//    _setupProfileUser();
 
+  }
 
+  _setupProfileUser() async
+  {
+    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    setState(() {
+      user = profileUser;
+    });
   }
 
   pickupForm()
@@ -129,10 +150,13 @@ class T1DashboardState extends State<T1Dashboard>
         Padding(
             padding: const EdgeInsets.all(8),
             child: TextFormField(
+              controller: itemController,
               keyboardType: TextInputType.text,
               validator:(input)=>
               input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>item = input,
+              onSaved:(input){item = input;
+               itemController.text = input;
+              },
               style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
               obscureText: false,
               decoration: InputDecoration(
@@ -155,6 +179,7 @@ class T1DashboardState extends State<T1Dashboard>
         Padding(
             padding: const EdgeInsets.all(8),
             child: TextFormField(
+              controller: pickPhoneController,
               keyboardType: TextInputType.phone,
               validator:(input)=>
               input.trim().isEmpty  ? 'Input field is empty' : null,
@@ -274,7 +299,7 @@ class T1DashboardState extends State<T1Dashboard>
         Padding(
             padding: const EdgeInsets.all(8),
             child: TextFormField(
-              keyboardType: TextInputType.phone,
+              keyboardType: TextInputType.emailAddress,
               validator:(input)=>
               input.trim().isEmpty  ? 'Input field is empty' : null,
               onSaved:(input)=>delivery_email = input,
@@ -314,6 +339,76 @@ class T1DashboardState extends State<T1Dashboard>
             hintText: 'extra optional note',
 
           )));
+  }
+
+  _showErrorDialog(String errMessage)
+  {
+    showDialog(
+        context: context,
+        builder: (_){
+          return AlertDialog(
+            title: Text('Response'),
+            content: Text(errMessage),
+            actions: <Widget>[
+              Platform.isIOS
+                  ? new CupertinoButton(
+                child: Text('Ok'),
+                onPressed: ()=> Navigator.pop(context),
+              ) : FlatButton(
+                child: Text('Ok'),
+                onPressed: ()=> Navigator.pop(context),
+              )
+            ],
+          );
+        }
+    );
+
+  }
+
+  _submit() async
+  {
+
+    setState(()=> _isLoading = false);
+    if(!_mapFormKey.currentState.validate())
+    {
+      SizedBox.shrink();
+    }
+    else if(_isLoading == false)
+    {
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(duration: new Duration(seconds: 3),
+            content:
+            new Row(
+              children: <Widget>[
+                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+                new Text("please wait...")
+              ],
+            ),
+            action: new SnackBarAction(
+                label: 'Ok',
+                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
+          ));
+
+    }
+    try
+    {
+      if(_mapFormKey.currentState.validate() && !_isLoading)
+      {
+        _mapFormKey.currentState.save();
+
+
+        PaystackPay(price: amount, pickAddress: pick_address, item: item, phone: phone,
+          deliveryAddress: delivery_address, deliveryName: delivery_name, deliveryPhone: delivery_phone,
+            deliveryEmail: delivery_email, note: note, distance: distance);
+
+
+      }
+
+    }
+    on PlatformException catch (err) {
+      _showErrorDialog(err.message);
+    }
+
   }
 
 
@@ -356,7 +451,7 @@ class T1DashboardState extends State<T1Dashboard>
                                 Container(
                                   decoration: BoxDecoration(shape: BoxShape.rectangle, color: Colors.white),
                                   width: width,
-                                  height: height * 1.2,
+                                  height: height * 1.35,
                                   child: Form(
                                     key: _mapFormKey,
                                     child: Column(
@@ -372,10 +467,12 @@ class T1DashboardState extends State<T1Dashboard>
                                                     {
                                                       pick_show = true;
                                                       pick_icon = Icon(Icons.cancel);
+                                                      item != null ? itemController.text = item : itemController.text = null;
                                                     }
                                                     else{
                                                       pick_show = false;
                                                       pick_icon = Icon(Icons.add);
+                                                      item != null ? itemController.text = item : itemController.text = null;
 
                                                     }
 
@@ -442,22 +539,22 @@ class T1DashboardState extends State<T1Dashboard>
                                   ),
                                 ),
                                 SizedBox(height: 16.0),
-                             Material(
-                                elevation: 2,
-                                shadowColor: Colors.deepOrangeAccent[200],
-                                borderRadius: new BorderRadius.circular(40.0),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 60,
-                                  child: MaterialButton(
-                                      child: text("Make payment", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
-                                      textColor: t1_white,
-                                      shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
-                                      color: t1_colorPrimary, onPressed:(){}
-
-                                      ),
-                                 ),
-                                ),
+//                             Material(
+//                                elevation: 2,
+//                                shadowColor: Colors.deepOrangeAccent[200],
+//                                borderRadius: new BorderRadius.circular(40.0),
+//                                child: SizedBox(
+//                                  width: double.infinity,
+//                                  height: 60,
+//                                  child: MaterialButton(
+//                                      child: text("Make payment", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+//                                      textColor: t1_white,
+//                                      shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
+//                                      color: t1_colorPrimary, onPressed:(){}
+//
+//                                      ),
+//                                 ),
+//                                ),
                               ],
                             ),
                           ),
@@ -492,6 +589,41 @@ class T1DashboardState extends State<T1Dashboard>
                   )
                 ],
               ),
+            ),
+          ),
+          Positioned(
+            bottom: 15.0,
+            right: 15.0,
+            left: 15.0,
+            child: Container(
+              height: 50.0,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3.0),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.grey,
+                        offset: Offset(1.0, 5.0),
+                        blurRadius: 15.0,
+                        spreadRadius: 3
+                    )
+                  ]
+
+              ),
+              child:Material(
+                  elevation: 2,
+                  shadowColor: Colors.deepOrangeAccent[200],
+                  borderRadius: new BorderRadius.circular(40.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: MaterialButton(
+                        child: text("Make Payment", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                        textColor: t1_white,
+                        shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
+                        color: t1_colorPrimary, onPressed:_submit
+                    ),
+                  )),
             ),
           ),
 
