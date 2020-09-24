@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pick_delivery/model/bouquet.dart';
 import 'package:pick_delivery/model/channel.dart';
+import 'package:pick_delivery/model/contact.dart';
 import 'package:pick_delivery/model/error_code.dart';
 import 'package:pick_delivery/model/mobilecustomer.dart';
 import 'package:pick_delivery/model/package.dart';
@@ -115,75 +116,39 @@ class DatabaseService
 
   }
 
-  Future<List<Channels>> getChannel()async
+  Future<List<Contact>> getContact()async
   {
 
 
     try{
 
-      String url = "https://mydstvgotvforselfservice.com/new_mobile/pizza/getChannel.php";
+      String url = "https://monikonnect/new_mobile/pizza/getChannel.php";
       http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
       {
 
-        List<Channels> list = parseResponseChannel(response.body);
+        List<Contact> list = parseResponseContact(response.body);
         return list;
 
       }
       else{
-        return  List<Channels>();
+        return  List<Contact>();
       }
 
     }
     catch(err){
-      return List<Channels>();
+      return List<Contact>();
     }
   }
 
-  List<Channels> parseResponseChannel(String responseBody)
+  List<Contact> parseResponseContact(String responseBody)
   {
     final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
-    return parsed.map<Channels>((json)=>Channels.fromJson(json)).toList();
+    return parsed.map<Contact>((json)=>Contact.fromJson(json)).toList();
 
   }
 
-  Future<List<Channels>> getChannel2(String package)async
-  {
-
-    var map = Map<String, dynamic>();
-    map['package'] = package;
-
-
-    try{
-
-      String url = "https://mydstvgotvforselfservice.com/new_mobile/pizza/getChannel3.php";
-      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
-
-      if(response.statusCode == 200)
-      {
-
-        List<Channels> list = parseResponseChannel(response.body);
-
-        return list;
-
-      }
-      else{
-        return  List<Channels>();
-      }
-
-    }
-    catch(err){
-      return List<Channels>();
-    }
-  }
-
-  List<Channels> parseResponseChannel2(String responseBody)
-  {
-    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
-    return parsed.map<Channels>((json)=>Channels.fromJson(json)).toList();
-
-  }
 
   Future<List<Package>> getPackage(String brand)async
   {

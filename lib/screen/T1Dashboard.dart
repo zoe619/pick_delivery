@@ -45,6 +45,7 @@ class T1DashboardState extends State<T1Dashboard>
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final _mapFormKey = GlobalKey<FormState>();
 
+
   String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone, delivery_email, note;
   bool _isLoading = false;
   bool pick_show = false;
@@ -88,6 +89,8 @@ class T1DashboardState extends State<T1Dashboard>
       delivery_show = true;
       delivery_icon = Icon(Icons.cancel);
       destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
+      itemController.text = Provider.of<UserData>(context, listen: false).pickItem;
+      pickPhoneController.text = Provider.of<UserData>(context, listen: false).pickPhone;
     }
     else{
       destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
@@ -98,7 +101,7 @@ class T1DashboardState extends State<T1Dashboard>
       distance = distance / 1000;
       amount = distance * 400;
     }
-//    _setupProfileUser();
+
 
   }
 
@@ -112,99 +115,102 @@ class T1DashboardState extends State<T1Dashboard>
 
   pickupForm()
   {
-    return Column(
-      children: <Widget>[
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_)=>Map2(id:1),
-                ));
-              },
-              readOnly: true,
-              controller: pickController,
-              keyboardType: TextInputType.text,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>pick_address = input,
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Pick up address',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+    return Form(
+      key: _pickFormKey,
+      child: Column(
+        children: <Widget>[
+          Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextFormField(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_)=>Map2(id:1),
+                  ));
+                },
+                readOnly: true,
+                controller: pickController,
+                keyboardType: TextInputType.text,
+                validator:(input)=>
+                input.trim().isEmpty  ? 'Input field is empty' : null,
+                onSaved:(input)=>pick_address = input,
+                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                obscureText: false,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                  hintText: 'Pick up address',
+                  filled: true,
+                  fillColor: t1_edit_text_background,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+              )
+          ),
+          SizedBox(height: 16.0),
+          Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextFormField(
+                controller: itemController,
+                keyboardType: TextInputType.text,
+                validator:(input)=>
+                input.trim().isEmpty  ? 'Input field is empty' : null,
+                onSaved:(input){item = input;
+                 itemController.text = input;
+                },
+                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                obscureText: false,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                  hintText: 'Item to pick up',
+                  filled: true,
+                  fillColor: t1_edit_text_background,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
                 ),
-              ),
-            )
-        ),
-        SizedBox(height: 16.0),
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              controller: itemController,
-              keyboardType: TextInputType.text,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input){item = input;
-               itemController.text = input;
-              },
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Item to pick up',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+              )
+          ),
+          SizedBox(height: 16),
+          Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextFormField(
+                controller: pickPhoneController,
+                keyboardType: TextInputType.phone,
+                validator:(input)=>
+                input.trim().isEmpty  || input.trim().length < 11 ? 'Invalid input' : null,
+                onSaved:(input)=>phone = input,
+                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                obscureText: false,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                  hintText: 'Sender\'s phone',
+                  filled: true,
+                  fillColor: t1_edit_text_background,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-              ),
-            )
-        ),
-        SizedBox(height: 16),
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              controller: pickPhoneController,
-              keyboardType: TextInputType.phone,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>phone = input,
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Sender\'s phone',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-              ),
-            )
-        ),
-        SizedBox(height: 16),
+              )
+          ),
+          SizedBox(height: 16),
 
-      ],
+        ],
+      ),
     );
 
   }
@@ -216,9 +222,14 @@ class T1DashboardState extends State<T1Dashboard>
             padding: const EdgeInsets.all(8),
             child: TextFormField(
               onTap: (){
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_)=>Map2(id:2),
-                ));
+                bool ret = _savePickForm();
+                if(ret){
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_)=>Map2(id:2),
+                  ));
+                }
+
+
               },
               controller: destinationController,
               keyboardType: TextInputType.text,
@@ -674,6 +685,22 @@ class T1DashboardState extends State<T1Dashboard>
       ],
       mainAxisAlignment: MainAxisAlignment.center,
     );
+  }
+
+  bool _savePickForm()
+  {
+    if(!_pickFormKey.currentState.validate())
+    {
+      return false;
+
+    }
+    else{
+      _pickFormKey.currentState.save();
+      Provider.of<UserData>(context, listen: false).pickItem = item;
+      Provider.of<UserData>(context, listen: false).pickPhone = phone;
+      return true;
+
+    }
   }
 }
 
