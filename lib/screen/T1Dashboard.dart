@@ -7,9 +7,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/model/user_data.dart';
+import 'package:pick_delivery/screen/T1Listing.dart';
 import 'package:pick_delivery/screen/T1Sidemenu.dart';
 import 'package:pick_delivery/screen/location.dart';
 import 'package:pick_delivery/screen/pay.dart';
+import 'package:pick_delivery/screen/riders.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -46,15 +48,18 @@ class T1DashboardState extends State<T1Dashboard>
   final _mapFormKey = GlobalKey<FormState>();
 
 
-  String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone, delivery_email, note;
+  String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone,
+      delivery_email, note, rider;
   bool _isLoading = false;
   bool pick_show = false;
   bool delivery_show = false;
   bool note_show = false;
+  bool rider_show = false;
 
   Icon pick_icon = Icon(Icons.add);
   Icon delivery_icon = Icon(Icons.add);
   Icon note_icon = Icon(Icons.add);
+  Icon rider_icon = Icon(Icons.add);
   double distance, amount;
 
 
@@ -63,6 +68,7 @@ class T1DashboardState extends State<T1Dashboard>
   TextEditingController destinationController = new TextEditingController();
   TextEditingController itemController = new TextEditingController();
   TextEditingController pickPhoneController = new TextEditingController();
+  TextEditingController riderController = new TextEditingController();
 
   String userId;
   User user = new User();
@@ -101,6 +107,14 @@ class T1DashboardState extends State<T1Dashboard>
       distance = distance / 1000;
       amount = distance * 400;
     }
+    if(Provider.of<UserData>(context, listen: false).riderName != null)
+    {
+      rider_show = true;
+      riderController.text = Provider.of<UserData>(context, listen: false).riderName;
+      print(Provider.of<UserData>(context, listen: false).riderName);
+
+    }
+
 
 
   }
@@ -351,6 +365,40 @@ class T1DashboardState extends State<T1Dashboard>
 
           )));
   }
+  riderForm(){
+    return Padding(
+        padding: const EdgeInsets.all(8),
+        child: TextFormField(
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_)=>Riders(),
+            ));
+          },
+          readOnly: true,
+          controller: riderController,
+          keyboardType: TextInputType.text,
+          validator:(input)=>
+          input.trim().isEmpty  ? 'Rider is empty' : null,
+          onSaved:(input)=>rider = input,
+          style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+          obscureText: false,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+            hintText: 'Pick a rider',
+            filled: true,
+            fillColor: t1_edit_text_background,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(40),
+              borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(40),
+              borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+            ),
+          ),
+        )
+    );
+  }
 
   _showErrorDialog(String errMessage)
   {
@@ -462,7 +510,7 @@ class T1DashboardState extends State<T1Dashboard>
                                 Container(
                                   decoration: BoxDecoration(shape: BoxShape.rectangle, color: Colors.white),
                                   width: width,
-                                  height: height * 1.35,
+                                  height: height * 1.6,
                                   child: Form(
                                     key: _mapFormKey,
                                     child: Column(
@@ -544,7 +592,33 @@ class T1DashboardState extends State<T1Dashboard>
                                           ),
                                         ),
                                         SizedBox(height: 10.0),
-                                        note_show == true ? noteForm() : SizedBox.shrink()
+                                        note_show == true ? noteForm() : SizedBox.shrink(),
+                                        SizedBox(height: 10.0),
+                                        Card(
+                                          child: ListTile(
+                                            leading: Icon(Icons.directions_bike),
+                                            title: Text('Pick a rider'),
+                                            trailing: GestureDetector(
+                                                onTap: (){
+                                                  setState(() {
+                                                    if(rider_show == false){
+                                                      rider_show = true;
+                                                      rider_icon = Icon(Icons.cancel);
+                                                    }
+                                                    else{
+                                                      rider_show = false;
+                                                      rider_icon = Icon(Icons.add);
+                                                    }
+                                                  });
+
+
+                                                },
+                                                child: rider_icon),
+                                          ),
+                                        ),
+                                        SizedBox(height: 10.0),
+                                        rider_show == true ? riderForm() : SizedBox.shrink(),
+                                        SizedBox(height: 16.0),
                                       ],
                                     ),
                                   ),

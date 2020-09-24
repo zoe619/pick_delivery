@@ -8,6 +8,7 @@ import 'package:pick_delivery/screen/T1Dashboard.dart';
 import 'package:pick_delivery/screen/T1Listing.dart';
 import 'package:pick_delivery/screen/T1Login.dart';
 import 'package:pick_delivery/screen/T1Profile.dart';
+import 'package:pick_delivery/screen/contact.dart';
 import 'package:pick_delivery/services/auth_service.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
@@ -136,9 +137,14 @@ class T1SideMenuState extends State<T1SideMenu>
                         ));
                       },
                         child: menuItem('Profile')),
-                    menuItem('Reach us'),
+                    GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_)=>ContactUs(),
+                          ));
+                        },
+                        child: menuItem('Reach us')),
                     SizedBox(height: 20),
-
 
 
                     Expanded(

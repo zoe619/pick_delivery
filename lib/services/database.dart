@@ -7,6 +7,7 @@ import 'package:pick_delivery/model/error_code.dart';
 import 'package:pick_delivery/model/mobilecustomer.dart';
 import 'package:pick_delivery/model/package.dart';
 import 'package:pick_delivery/model/products.dart';
+import 'package:pick_delivery/model/rider.dart';
 import 'package:pick_delivery/model/transaction.dart';
 import 'package:pick_delivery/model/user.dart';
 import 'package:http/http.dart' as http;
@@ -122,13 +123,14 @@ class DatabaseService
 
     try{
 
-      String url = "https://monikonnect/new_mobile/pizza/getChannel.php";
+      String url = "https://monikonnect.com/new_mobile/pizza/getContact.php";
       http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
       {
 
         List<Contact> list = parseResponseContact(response.body);
+        print(list);
         return list;
 
       }
@@ -149,6 +151,40 @@ class DatabaseService
 
   }
 
+  Future<List<Rider>> getRider()async
+  {
+
+    var map = Map<String, dynamic>();
+    map['status'] = "active";
+    try{
+
+      String url = "https://monikonnect.com/new_mobile/pizza/getRider.php";
+      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
+
+      if(response.statusCode == 200)
+      {
+
+        List<Rider> list = parseResponseRider(response.body);
+        print(list);
+        return list;
+
+      }
+      else{
+        return  List<Rider>();
+      }
+
+    }
+    catch(err){
+      return List<Rider>();
+    }
+  }
+
+  List<Rider> parseResponseRider(String responseBody)
+  {
+    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+    return parsed.map<Rider>((json)=>Rider.fromJson(json)).toList();
+
+  }
 
   Future<List<Package>> getPackage(String brand)async
   {
@@ -374,7 +410,7 @@ class DatabaseService
 
   }
 
-    addUser(String name, String email, String password, String phone, String type)async{
+    addUser(String name, String email, String password, String phone, String type, String address, String fee)async{
     try{
       var map = Map<String, dynamic>();
       map['name'] = name;
@@ -382,6 +418,8 @@ class DatabaseService
       map['password'] = password;
       map['phone'] = phone;
       map['type'] = type;
+      map['address'] = address;
+      map['fee'] = fee;
       String url = "https://monikonnect.com/new_mobile/pizza/signup.php";
       http.Response res = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 

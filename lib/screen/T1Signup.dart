@@ -30,7 +30,7 @@ class _T1Signup extends State<T1Signup>
   final _signupFormKey = GlobalKey<FormState>();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  String name, email, password, phone, pick, table, user_type;
+  String name, email, password, phone, address, charge, user_type;
   bool _isLoading = false;
   int group = 0;
 
@@ -109,8 +109,13 @@ class _T1Signup extends State<T1Signup>
         {
           user_type = "Rider";
         }
-        else if(group == 2){
+        else if(group == 2)
+        {
           user_type = "Customer";
+          setState(() {
+            address = "";
+            charge = "";
+          });
         }
         else{
           _showErrorDialog("Select user type", "Fail");
@@ -118,7 +123,7 @@ class _T1Signup extends State<T1Signup>
         }
 
 
-        List res = await dbService.addUser(name, email, password, phone, user_type);
+        List res = await dbService.addUser(name, email, password, phone, user_type, address, charge);
         Map<String, dynamic> map;
 
         for(int i = 0; i < res.length; i++)
@@ -134,7 +139,7 @@ class _T1Signup extends State<T1Signup>
         else
         {
 
-          String res =  await authService.signUp(name, email, password, phone, user_type);
+          String res =  await authService.signUp(name, email, password, phone, user_type, address, charge);
 
 
           if(res != null)
@@ -398,6 +403,58 @@ class _T1Signup extends State<T1Signup>
                             ),
                           )
                       ),
+                     SizedBox(height: 16.0),
+                     group == 1 ? Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                          child: TextFormField(
+                            keyboardType: TextInputType.text,
+                            validator:(input)=>
+                            input.trim().isEmpty  ? 'Input field is empty' : null,
+                            onSaved:(input)=>address = input,
+                            style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                            obscureText: false,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                              hintText: 'address',
+                              filled: true,
+                              fillColor: t1_edit_text_background,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40),
+                                borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40),
+                                borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                              ),
+                            ),
+                          )
+                      ) : SizedBox.shrink(),
+                      SizedBox(height: 16.0),
+                      group == 1 ? Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                          child: TextFormField(
+                            keyboardType: TextInputType.number,
+                            validator:(input)=>
+                            input.trim().isEmpty  ? 'Input field is empty' : null,
+                            onSaved:(input)=>charge = input,
+                            style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                            obscureText: false,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                              hintText: 'fee per kilometer',
+                              filled: true,
+                              fillColor: t1_edit_text_background,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40),
+                                borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40),
+                                borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                              ),
+                            ),
+                          )
+                      ) : SizedBox.shrink(),
                       SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.only(left:50.0),

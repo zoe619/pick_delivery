@@ -15,4 +15,6 @@ class UserData extends ChangeNotifier
     double distance;
     String pickItem;
     String pickPhone;
+    String riderName;
+    String riderEmail;
 }

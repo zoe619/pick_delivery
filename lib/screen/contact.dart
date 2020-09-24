@@ -55,17 +55,20 @@ class _ContactUsState extends State<ContactUs>
         future: _setupContact(),
         builder: (BuildContext context, AsyncSnapshot snapshot)
         {
-          if(!snapshot.hasData){
+          if(contact == null)
+          {
             return Center(
               child: Platform.isIOS ? CupertinoActivityIndicator() : CircularProgressIndicator(),
             );
           }
-          return ListView(
-            children: <Widget>[
-              _buildProfileInfo(contact),
-              Divider(),
-            ],
-          );
+
+            return ListView(
+              children: <Widget>[
+               contact != null ? _buildProfileInfo(contact)  : CircularProgressIndicator(),
+                Divider(),
+              ],
+            );
+
         },
       ),
     );
@@ -73,6 +76,8 @@ class _ContactUsState extends State<ContactUs>
 
   _buildProfileInfo(Contact contact)
   {
+
+
     final profileImg = new Container(
         margin: new EdgeInsets.symmetric(horizontal: 16.0),
         alignment: FractionalOffset.center,
@@ -89,8 +94,9 @@ class _ContactUsState extends State<ContactUs>
           children: <Widget>[
             SizedBox(height: 50),
 
-            text(contact.phone, textColor: t1TextColorPrimary, fontSize: textSizeNormal, fontFamily: fontMedium),
-            text(contact.email, textColor: t1_colorPrimary, fontSize: textSizeMedium, fontFamily: fontMedium),
+          contact.phone != null ? text(contact.phone, textColor: t1TextColorPrimary,
+              fontSize: textSizeNormal, fontFamily: fontMedium) : CircularProgressIndicator(),
+            contact.email != null ? text(contact.email, textColor: t1_colorPrimary, fontSize: textSizeMedium, fontFamily: fontMedium) : SizedBox.shrink(),
             Padding(
               padding: const EdgeInsets.all(16),
               child: view(),
@@ -126,9 +132,9 @@ class _ContactUsState extends State<ContactUs>
                     child: Column(
                       children: <Widget>[
                         SizedBox(height: 8),
-                        rowHeading(t1_lbl_personal),
+                        rowHeading("Address"),
                         SizedBox(height: 16),
-                        profileText(contact.address),
+                        contact.address != null ? profileText(contact.address) : SizedBox.shrink(),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                           child: view(),
@@ -153,9 +159,9 @@ class _ContactUsState extends State<ContactUs>
                     child: Column(
                       children: <Widget>[
                         SizedBox(height: 8),
-                        rowHeading(t1_lbl_contacts),
+                        rowHeading("Website"),
                         SizedBox(height: 16),
-                         profileText(contact.website),
+                        contact.website != null ? profileText(contact.website) : SizedBox.shrink(),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                           child: view(),
@@ -170,7 +176,7 @@ class _ContactUsState extends State<ContactUs>
             ),
           ),
         ),
-        TopBar(t1_profile_title),
+        TopBar('Contact Us'),
       ],
     );
   }

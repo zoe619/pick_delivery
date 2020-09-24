@@ -14,7 +14,7 @@ class AuthService{
   Stream<User> get user => _auth.authStateChanges();
 
 
-  Future<String> signUp(String name, String email, String password, String phone, type) async
+  Future<String> signUp(String name, String email, String password, String phone, String type, String address, String fee) async
   {
     String res;
     try{
@@ -28,7 +28,9 @@ class AuthService{
           'name': name,
           'email': email,
           'phone': phone,
-          'type': type
+          'type': type,
+          'address': address,
+          'fee': fee
         });
 
 
