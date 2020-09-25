@@ -105,13 +105,16 @@ class T1DashboardState extends State<T1Dashboard>
     {
       distance = Provider.of<UserData>(context, listen: false).distance;
       distance = distance / 1000;
-      amount = distance * 400;
+
     }
     if(Provider.of<UserData>(context, listen: false).riderName != null)
     {
+
       rider_show = true;
+      rider_icon = Icon(Icons.cancel);
       riderController.text = Provider.of<UserData>(context, listen: false).riderName;
-      print(Provider.of<UserData>(context, listen: false).riderName);
+      amount = Provider.of<UserData>(context, listen: false).amount * distance;
+
 
     }
 

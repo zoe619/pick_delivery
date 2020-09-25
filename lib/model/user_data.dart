@@ -17,4 +17,5 @@ class UserData extends ChangeNotifier
     String pickPhone;
     String riderName;
     String riderEmail;
+    double amount;
 }

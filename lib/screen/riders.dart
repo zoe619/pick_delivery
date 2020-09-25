@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:pick_delivery/model/T1_model.dart';
 import 'package:pick_delivery/model/rider.dart';
 import 'package:pick_delivery/model/user_data.dart';
+import 'package:pick_delivery/screen/T1Dashboard.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -104,10 +105,14 @@ class T1ListItem extends StatelessWidget
               Container(
                 padding: EdgeInsets.all(16),
                 child: GestureDetector(
-                  onTap: (){
+                  onTap: ()
+                  {
                    Provider.of<UserData>(context, listen: false).riderName = model.name;
                    Provider.of<UserData>(context, listen: false).riderEmail = model.email;
-                   Navigator.pop(context);
+                   Provider.of<UserData>(context, listen: false).amount = model.fee;
+                   Navigator.push(context, MaterialPageRoute(
+                     builder: (_)=>T1Dashboard()
+                   ));
                   },
                   child: Column(
                     children: <Widget>[
@@ -131,7 +136,7 @@ class T1ListItem extends StatelessWidget
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
                                       text(model.name, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
-                                      text('NGN '+ model.fee + " per kilometer", fontSize: textSizeMedium),
+                                      text('NGN '+ model.fee.toString() + " per kilometer", fontSize: textSizeMedium),
                                     ],
                                   ),
                                   text(model.phone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),

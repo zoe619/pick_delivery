@@ -3,7 +3,7 @@ class Rider {
   final String phone;
   final String email;
   final String address;
-  final String fee;
+  final double fee;
 
 
   Rider({
@@ -22,7 +22,7 @@ class Rider {
         phone: json['phone'] as String,
         email: json['email'] as String,
         address: json['address'] as String,
-        fee: json['charge'] as String
+        fee: json['charge'] as double
 
     );
   }
