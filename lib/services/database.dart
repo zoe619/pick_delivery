@@ -474,7 +474,8 @@ class DatabaseService
 
   addDelivery(String senderEmail, String pickAddress, double distance, double amount,
       double pickLatitude, double pickLongitude, double destinationLatitude, double destinationLongitude,
-      String deliveryName, String deliveryEmail, deliveryPhone, String destinationAddress, String note)async
+      String deliveryName, String deliveryEmail, deliveryPhone,
+      String destinationAddress, String note, String payMethod, String payStatus)async
   {
     try{
       var map = Map<String, dynamic>();

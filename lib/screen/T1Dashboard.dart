@@ -11,6 +11,7 @@ import 'package:pick_delivery/screen/T1Listing.dart';
 import 'package:pick_delivery/screen/T1Sidemenu.dart';
 import 'package:pick_delivery/screen/location.dart';
 import 'package:pick_delivery/screen/pay.dart';
+import 'package:pick_delivery/screen/pay2.dart';
 import 'package:pick_delivery/screen/riders.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
@@ -430,6 +431,10 @@ class T1DashboardState extends State<T1Dashboard>
   _submit() async
   {
 
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_)=>Pay(),
+    ));
+    return;
     setState(()=> _isLoading = false);
     if(!_mapFormKey.currentState.validate())
     {
@@ -706,7 +711,7 @@ class T1DashboardState extends State<T1Dashboard>
                     width: double.infinity,
                     height: 60,
                     child: MaterialButton(
-                        child: text("Make Payment", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                        child: text("Submit Order", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
                         textColor: t1_white,
                         shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
                         color: t1_colorPrimary, onPressed:_submit

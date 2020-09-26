@@ -4,71 +4,107 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_paystack/flutter_paystack.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/model/user_data.dart';
 import 'package:pick_delivery/screen/T1Dashboard.dart';
+import 'package:pick_delivery/screen/T1Listing.dart';
+import 'package:pick_delivery/screen/T1Sidemenu.dart';
+import 'package:pick_delivery/screen/location.dart';
+import 'package:pick_delivery/screen/pay2.dart';
+import 'package:pick_delivery/screen/riders.dart';
 import 'package:pick_delivery/services/database.dart';
+import 'package:pick_delivery/utils/T1Colors.dart';
+import 'package:pick_delivery/utils/T1Constant.dart';
+import 'package:pick_delivery/utils/T1Extension.dart';
+import 'package:pick_delivery/utils/T1Images.dart';
+import 'package:pick_delivery/utils/T1Strings.dart';
+import 'package:pick_delivery/utils/T1Widget.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 
-String backendUrl = 'https://api.paystack.co/transaction';
-
-
-String paystackSecretKey = 'sk_live_a9a87b7497c6a00f9b472e77198c5774a6378394';
-
-String paystackPublicKey = 'pk_live_140823c0754222c801446bd1b1b878f408f3b35a';
-
-
-class PaystackPay extends StatefulWidget
+class Pay extends StatefulWidget
 {
+
 
   String item, phone, pickAddress, deliveryAddress, deliveryName, deliveryPhone, deliveryEmail, note;
   double price, distance;
-  PaystackPay({this.price, this.pickAddress, this.item, this.phone, this.deliveryAddress,
+  Pay({this.price, this.pickAddress, this.item, this.phone, this.deliveryAddress,
     this.deliveryName, this.deliveryPhone, this.deliveryEmail, this.note, this.distance});
 
   @override
-  _PaystackPayState createState() => _PaystackPayState();
+  State<StatefulWidget> createState() {
+    return PayState();
+  }
 }
 
-class _PaystackPayState extends State<PaystackPay>
+class PayState extends State<Pay>
 {
-  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  String backendUrl = 'https://api.paystack.co/transaction';
+  String paystackSecretKey = 'sk_live_a9a87b7497c6a00f9b472e77198c5774a6378394';
+  String paystackPublicKey = 'pk_live_140823c0754222c801446bd1b1b878f408f3b35a';
+
+  var isSelected = 1;
+  var width;
+  var height;
+  final _pickFormKey = GlobalKey<FormState>();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
-  final _verticalSizeBox = const SizedBox(height: 20.0);
-  final _horizontalSizeBox = const SizedBox(width: 10.0);
-  var _border = new Container(
-    width: double.infinity,
-    height: 1.0,
-    color: Colors.red,
-  );
-  int _radioValue = 0;
-  int _payValue = 0;
-  CheckoutMethod _method;
+
+
+  String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone,
+      delivery_email, note, rider;
+  bool _isLoading = false;
+  bool bill_show = false;
+  bool delivery_show = false;
+  bool pick_show = false;
+  bool rider_show = false;
+  Color change = Colors.red;
+
+
+  double distance, amount;
+
+
+
+  TextEditingController pickController = new TextEditingController();
+  TextEditingController destinationController = new TextEditingController();
+  TextEditingController itemController = new TextEditingController();
+  TextEditingController pickPhoneController = new TextEditingController();
+  TextEditingController riderController = new TextEditingController();
+
+  String userId;
+  User user = new User();
+
   bool _inProgress = false;
   String _cardNumber;
   String _cvv;
   int _expiryMonth = 0;
   int _expiryYear = 0;
-  String _reference;
+  String payMethod;
+  String payText = "Make Payment";
   String senderName, senderEmail;
-  int amount;
-  String userId;
-  User user = new User();
+
   double pickLatitude, pickLongitude, destinationLatitude, destinationLongitude;
+  bool _isLocal = false;
+  int price;
+  String _reference;
+
+
 
   @override
-  void initState()
-  {
-    PaystackPlugin.initialize(publicKey: paystackPublicKey);
+  void initState() {
+    // TODO: implement initState
     super.initState();
-
-    _radioValue = 1;
+    change = Colors.white;
+     price = amount.round();
     _setupProfileUser();
-
   }
+
   _setupProfileUser() async
   {
     User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
@@ -83,337 +119,6 @@ class _PaystackPayState extends State<PaystackPay>
     });
   }
 
-  Widget _buildCheckOut()
-  {
-    return
-      new Row(
-        mainAxisAlignment:
-        MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          new Flexible(
-            flex: 3,
-            child: new DropdownButtonHideUnderline(
-              child: new InputDecorator(
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                  hintText: 'Checkout method',
-                ),
-                isEmpty: _method == null,
-                child: new DropdownButton<
-                    CheckoutMethod>(
-                  value: _method,
-                  isDense: true,
-                  onChanged: (CheckoutMethod value) {
-                    setState(() {
-                      _method = value;
-                    });
-                  },
-                  items: banks.map((String value) {
-                    return new DropdownMenuItem<
-                        CheckoutMethod>(
-                      value:
-                      _parseStringToMethod(value),
-                      child: new Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ),
-          _horizontalSizeBox,
-          new Flexible(
-            flex: 2,
-            child: new Container(
-              width: double.infinity,
-              child: _getPlatformButton(
-                'Checkout',
-                    () => _handleCheckout(context),
-              ),
-            ),
-          ),
-        ],
-      );
-
-  }
-
-  Widget _buildCard()
-  {
-
-    return Container(
-      child: Column(
-        children: <Widget>[
-          new TextFormField(
-            decoration: const InputDecoration(
-              border: const UnderlineInputBorder(),
-              labelText: 'Card Number',
-            ),
-            onSaved: (String value) => _cardNumber = value,
-          ),
-          SizedBox(height: 10.0),
-          new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              new Expanded(
-                child: new TextFormField(
-                  decoration: const InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'CVV',
-                  ),
-                  onSaved: (String value) => _cvv = value,
-                ),
-              ),
-              _horizontalSizeBox,
-              new Expanded(
-                child: new TextFormField(
-                  decoration: const InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'Expiry Month',
-                  ),
-                  onSaved: (String value) =>
-                  _expiryMonth = int.tryParse(value),
-                ),
-              ),
-              _horizontalSizeBox,
-              new Expanded(
-                child: new TextFormField(
-                  decoration: const InputDecoration(
-                    border: const UnderlineInputBorder(),
-                    labelText: 'Expiry Year',
-                  ),
-                  onSaved: (String value) =>
-                  _expiryYear = int.tryParse(value),
-                ),
-              )
-            ],
-          ),
-        ],
-      ),
-
-    );
-
-  }
-
-  @override
-  Widget build(BuildContext context)
-  {
-    return new Scaffold(
-      key: _scaffoldKey,
-      appBar: new AppBar(title: Padding(
-        padding: const EdgeInsets.only(right: 40.0),
-        child: Center(child: const Text("Pick Delivery")),
-      )),
-      body: new Container(
-        padding: const EdgeInsets.all(20.0),
-        child: new Form(
-          key: _formKey,
-          child: new SingleChildScrollView(
-            child: new ListBody(
-              children: <Widget>[
-                new Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    new Expanded(
-                      child: const Text('Select Payment Option:'),
-                    ),
-                    new Expanded(
-                      child: new Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            new RadioListTile<int>(
-                              value: 0,
-                              groupValue: _payValue,
-                              onChanged: _handlePayValueChanged,
-                              title: const Text('Bank'),
-                            ),
-                            new RadioListTile<int>(
-                              value: 1,
-                              groupValue: _payValue,
-                              onChanged: _handlePayValueChanged,
-                              title: const Text('Card'),
-                            ),
-                          ]),
-                    )
-
-                  ],
-                ),
-//                _border,
-                _verticalSizeBox,
-                _payValue == 1 ? _buildCard() : SizedBox.shrink(),
-
-                _verticalSizeBox,
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    accentColor: green,
-                    primaryColorLight: Colors.white,
-                    primaryColorDark: navyBlue,
-                    textTheme: Theme.of(context).textTheme.copyWith(
-                      body2: TextStyle(
-                        color: lightBlue,
-                      ),
-                    ),
-                  ),
-                  child: Builder(
-                    builder: (context) {
-                      return _inProgress
-                          ? new Container(
-                        alignment: Alignment.center,
-                        height: 50.0,
-                        child: Platform.isIOS
-                            ? new CupertinoActivityIndicator()
-                            : new CircularProgressIndicator(),
-                      )
-                          : new Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          _payValue == 1 ? _getPlatformButton(
-                              'Pay', () => _startAfreshCharge()) : SizedBox.shrink(),
-                          _verticalSizeBox,
-//                          _border,
-                          new SizedBox(
-                            height: 40.0,
-                          ),
-                          _payValue == 0 ? _buildCheckOut() : SizedBox.shrink(),
-
-                        ],
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleRadioValueChanged(int value) =>
-      setState(() => _radioValue = value);
-
-  void _handlePayValueChanged(int value)
-  {
-    setState(() {
-      _payValue = value;
-      if(_payValue == 0){
-        _radioValue = 1;
-      }
-      else{
-        _radioValue = 0;
-      }
-    });
-
-  }
-
-
-  _handleCheckout(BuildContext context) async
-  {
-
-
-    if (_method == null)
-    {
-      _method = CheckoutMethod.bank;
-      setState(() {
-        _radioValue = 1;
-      });
-//      _showMessage('Select checkout method first');
-      return;
-    }
-
-    if (_method != CheckoutMethod.card && _isLocal) {
-      _showMessage('Select server initialization method at the top');
-      return;
-    }
-    setState(() => _inProgress = true);
-    _formKey.currentState.save();
-    Charge charge = Charge()
-      ..amount = amount * 100 // In base currency
-      ..email = senderEmail
-      ..card = _getCardFromUI();
-
-
-
-    if (!_isLocal)
-    {
-      var accessCode = await _fetchAccessCodeFrmServer(_getReference());
-      charge.accessCode = accessCode;
-
-
-      setState(() {
-        _reference = charge.reference;
-      });
-    }
-    else
-    {
-      charge.reference = _getReference();
-    }
-
-    try
-    {
-      CheckoutResponse response = await PaystackPlugin.checkout(
-        context,
-        method: _method,
-        charge: charge,
-        fullscreen: false,
-        logo: MyLogo(),
-      );
-
-      setState(() => _inProgress = false);
-
-
-
-      bool resp = await _verifyOnServer(response.reference);
-
-
-
-      if(resp)
-      {
-
-        try
-        {
-            List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
-              senderEmail, widget.pickAddress, widget.distance, widget.price, pickLatitude, pickLongitude,
-              destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-              widget.deliveryAddress, widget.note
-            );
-
-            Map<String, dynamic> map;
-
-            for(int i = 0; i < res.length; i++)
-            {
-              map = res[i];
-
-            }
-            if(map['status'] == "Fail")
-            {
-              _showErrorDialog(map['msg'], map['status']);
-            }
-            else
-            {
-              _showErrorDialog(map['msg'], map['status']);
-
-            }
-
-
-
-        }on PlatformException catch(error)
-        {
-          _showErrorDialog(error.message, "Error");
-        }
-
-      }
-
-    }
-    catch (e) {
-      setState(() => _inProgress = false);
-//      _showMessage("Check console for error");
-      rethrow;
-    }
-  }
-
   _showErrorDialog(String errMessage, String status)
   {
     showDialog(
@@ -424,8 +129,8 @@ class _PaystackPayState extends State<PaystackPay>
             content: Text(errMessage),
             actions: <Widget>[
               FlatButton(
-                child: Text('Ok'),
-                onPressed: (){
+                  child: Text('Ok'),
+                  onPressed: (){
 
 //                    Navigator.popAndPushNamed(context, "/subPage");
                     Navigator.pushAndRemoveUntil(
@@ -435,7 +140,7 @@ class _PaystackPayState extends State<PaystackPay>
                     );
 
 
-                }
+                  }
               ),
             ],
           );
@@ -443,34 +148,75 @@ class _PaystackPayState extends State<PaystackPay>
     );
 
   }
+
+  _deliveryPay() async
+  {
+    try
+    {
+
+      String payStatus = "no";
+      List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
+          senderEmail, widget.pickAddress, widget.distance, widget.price, pickLatitude, pickLongitude,
+          destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
+          widget.deliveryAddress, widget.note, payMethod, payStatus
+      );
+
+      Map<String, dynamic> map;
+
+      for(int i = 0; i < res.length; i++)
+      {
+        map = res[i];
+
+      }
+      if(map['status'] == "Fail")
+      {
+        _showErrorDialog(map['msg'], map['status']);
+      }
+      else
+      {
+        _showErrorDialog(map['msg'], map['status']);
+
+      }
+
+
+
+    }on PlatformException catch(error)
+    {
+      _showErrorDialog(error.message, "Error");
+    }
+  }
   _startAfreshCharge() async
   {
-    _formKey.currentState.save();
-
-    Charge charge = Charge();
-    charge.card = _getCardFromUI();
-
-    setState(() => _inProgress = true);
-
-
-
-    if (_isLocal)
+    if(payMethod == "pick")
     {
-      // Set transaction params directly in app (note that these params
-      // are only used if an access_code is not set. In debug mode,
-      // setting them after setting an access code would throw an exception
+      _formKey.currentState.save();
 
-      charge
-        ..amount = amount * 100// In base currency
-        ..email = senderEmail
-        ..reference = _getReference()
-        ..putCustomField('Charged From', 'Pick Delivery');
-      _chargeCard(charge);
-    } else {
-      // Perform transaction/initialize on Paystack server to get an access code
-      // documentation: https://developers.paystack.co/reference#initialize-a-transaction
-      charge.accessCode = await _fetchAccessCodeFrmServer(_getReference());
-      _chargeCard(charge);
+      Charge charge = Charge();
+      charge.card = _getCardFromUI();
+
+      setState(() => _inProgress = true);
+
+
+      if (_isLocal) {
+        // Set transaction params directly in app (note that these params
+        // are only used if an access_code is not set. In debug mode,
+        // setting them after setting an access code would throw an exception
+
+        charge
+          ..amount = price * 100 // In base currency
+          ..email = senderEmail
+          ..reference = _getReference()
+          ..putCustomField('Charged From', 'Pick Delivery');
+        _chargeCard(charge);
+      } else {
+        // Perform transaction/initialize on Paystack server to get an access code
+        // documentation: https://developers.paystack.co/reference#initialize-a-transaction
+        charge.accessCode = await _fetchAccessCodeFrmServer(_getReference());
+        _chargeCard(charge);
+      }
+    }
+    else{
+      _deliveryPay();
     }
   }
 
@@ -592,28 +338,29 @@ class _PaystackPayState extends State<PaystackPay>
         try
         {
 
+          String payStatus = "paid";
           List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
               senderEmail, widget.pickAddress, widget.distance, widget.price, pickLatitude, pickLongitude,
               destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-              widget.deliveryAddress, widget.note
+              widget.deliveryAddress, widget.note, payMethod, payStatus
           );
 
-            Map<String, dynamic> map;
+          Map<String, dynamic> map;
 
-            for(int i = 0; i < res.length; i++)
-            {
-              map = res[i];
+          for(int i = 0; i < res.length; i++)
+          {
+            map = res[i];
 
-            }
-            if(map['status'] == "Fail")
-            {
-              _showErrorDialog(map['msg'], map['status']);
-            }
-            else
-            {
-              _showErrorDialog(map['msg'], map['status']);
+          }
+          if(map['status'] == "Fail")
+          {
+            _showErrorDialog(map['msg'], map['status']);
+          }
+          else
+          {
+            _showErrorDialog(map['msg'], map['status']);
 
-            }
+          }
 
 
 
@@ -655,42 +402,11 @@ class _PaystackPayState extends State<PaystackPay>
       expiryMonth: _expiryMonth,
       expiryYear: _expiryYear,
     );
-
-
-  }
-
-  Widget _getPlatformButton(String string, Function() function) {
-    // is still in progress
-    Widget widget;
-    if (Platform.isIOS) {
-      widget = new CupertinoButton(
-        onPressed: function,
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
-        color: CupertinoColors.activeBlue,
-        child: new Text(
-          string,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      );
-    } else {
-      widget = new RaisedButton(
-        onPressed: function,
-        color: Colors.blueAccent,
-        textColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 13.0, horizontal: 10.0),
-        child: new Text(
-          string.toUpperCase(),
-          style: const TextStyle(fontSize: 17.0),
-        ),
-      );
-    }
-    return widget;
   }
 
   Future<String> _fetchAccessCodeFrmServer(String reference) async
   {
-    int amounts = amount * 100;
+    int amounts = price * 100;
     var map = Map<String, dynamic>();
     map['email'] = senderEmail;
     map['amount'] = amounts.toString();
@@ -723,45 +439,6 @@ class _PaystackPayState extends State<PaystackPay>
     return accessCode;
   }
 
-  Future<String> _fetchAccessCodeFrmServer2() async
-  {
-
-    var map = Map<String, dynamic>();
-    map['email'] = senderEmail;
-    map['amount'] = amount.toString();
-    String url = 'https://monikonnect/new_mobile/pizza/initialize.php';
-    String accessCode;
-    List result;
-    try
-    {
-
-      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
-      result = json.decode(response.body);
-
-      Map<String, dynamic> maps;
-
-      for(int i = 0; i < result.length; i++)
-      {
-        maps = result[i];
-
-      }
-      accessCode = (maps['code']);
-
-
-      print(result);
-
-    }
-    catch (e)
-    {
-      print(result);
-      setState(() => _inProgress = false);
-      _updateStatus(
-          "error",
-          'There was a problem getting access code from server');
-    }
-
-    return accessCode;
-  }
   Future<bool> _verifyOnServer(String reference) async
   {
     bool rep;
@@ -819,47 +496,355 @@ class _PaystackPayState extends State<PaystackPay>
     ));
   }
 
-  bool get _isLocal => _radioValue == 0;
-}
 
-var banks = ['Bank'];
-
-CheckoutMethod _parseStringToMethod(String string) {
-  CheckoutMethod method = CheckoutMethod.selectable;
-  switch (string) {
-    case 'Bank':
-      method = CheckoutMethod.bank;
-      break;
-    case 'Card':
-      method = CheckoutMethod.card;
-      break;
+  billForm(){
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Subtotal'),
+                Text('NGN 500')
+              ],
+            ),
+            SizedBox(height: 5.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Total'),
+                Text('NGN 600')
+              ],
+            ),
+          ],
+        )
+    );
   }
-  return method;
-}
 
 
-class MyLogo extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.black,
+  Widget build(BuildContext context)
+  {
+    width = MediaQuery.of(context).size.width;
+    height = MediaQuery.of(context).size.height;
+    changeStatusColor(Colors.white);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: t1_white,
+      body: Stack(
+        children: <Widget>[
+          SingleChildScrollView(
+            padding: EdgeInsets.only(top: 80),
+            physics: ScrollPhysics(),
+            child: Container(
+              child: Column(
+                children: <Widget>[
+                  Container(
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10.0, right: 10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>
+                              [
+
+                                Container(
+                                  decoration: BoxDecoration(shape: BoxShape.rectangle, color: Colors.white),
+                                  width: width,
+                                  height: height * 1.6,
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      children: <Widget>[
+                                        GestureDetector(
+                                          child: Card(
+                                            child: ListTile(
+                                              leading: Icon(Icons.note),
+                                              title: Text('Bill Summary'),
+
+                                            ),
+                                          ),
+
+                                          onTap: (){
+                                            setState(() {
+                                              if(bill_show == false)
+                                              {
+                                                bill_show = true;
+
+                                              }
+                                              else{
+                                                bill_show = false;
+
+
+                                              }
+
+
+                                            });
+                                          },
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        bill_show == true ? billForm() : SizedBox.shrink(),
+                                        SizedBox(height: 10.0),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: change
+                                          ),
+                                          child: GestureDetector(
+                                            child: Card(
+                                              child: ListTile(
+                                                leading: Icon(Icons.money_off),
+                                                title: Text('Cash on delivery'),
+
+                                              ),
+                                            ),
+                                            onTap: (){
+                                              setState(() {
+                                                if(delivery_show == false)
+                                                {
+                                                  delivery_show = true;
+                                                  change = Colors.red;
+                                                  payMethod = "delivery";
+                                                  payText = "Submit";
+                                                  pick_show = false;
+
+                                                }
+                                                else{
+                                                  delivery_show = false;
+                                                  change = Colors.red;
+                                                  payMethod = "delivery";
+                                                  payText = "Submit";
+                                                  pick_show = false;
+
+                                                }
+
+
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        GestureDetector(
+                                          child: Card(
+                                            child: ListTile(
+                                              leading: Icon(Icons.monetization_on),
+                                              title: Text('Cash on pick-up'),
+
+                                            ),
+                                          ),
+                                          onTap: (){
+                                            setState(() {
+                                              if(pick_show == false)
+                                              {
+                                                pick_show = true;
+                                                change = Colors.white;
+                                                payMethod = "pick";
+                                                payText = "Make Payment";
+
+                                              }
+                                              else{
+                                                pick_show = false;
+                                                payMethod = 'pick';
+                                                change = Colors.white;
+                                                payText = "Make Payment";
+
+                                              }
+
+
+                                            });
+                                          },
+                                        ),
+                                        SizedBox(height: 5.0),
+                                        pick_show == true ? _buildCard() : SizedBox.shrink(),
+                                        SizedBox(height: 5.0),
+
+                                        SizedBox(height: 16.0),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 16.0),
+                              ],
+                            ),
+                          ),
+
+                        ],
+                      )),
+
+                ],
+              ),
+            ),
+          ),
+          TopBar('Pick payment'),
+          Positioned(
+            bottom: 15.0,
+            right: 15.0,
+            left: 15.0,
+            child: Container(
+              height: 50.0,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3.0),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.grey,
+                        offset: Offset(1.0, 5.0),
+                        blurRadius: 15.0,
+                        spreadRadius: 3
+                    )
+                  ]
+
+              ),
+              child:Material(
+                  elevation: 2,
+                  shadowColor: Colors.deepOrangeAccent[200],
+                  borderRadius: new BorderRadius.circular(40.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: MaterialButton(
+                        child: text(payText, fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                        textColor: t1_white,
+                        shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
+                        color: t1_colorPrimary, onPressed:_startAfreshCharge
+                    ),
+                  )),
+            ),
+          ),
+
+        ],
       ),
-      alignment: Alignment.center,
-      padding: EdgeInsets.all(10),
-      child: Text(
-        "Pick Delivery",
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
+    );
+  }
+
+  Widget tabItem(var pos, var icon) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          isSelected = pos;
+        });
+      },
+      child: Container(
+        width: 45,
+        height: 45,
+        alignment: Alignment.center,
+        decoration: isSelected == pos ? BoxDecoration(shape: BoxShape.circle, color: t1_colorPrimary_light) : BoxDecoration(),
+        child: SvgPicture.asset(
+          icon,
+          width: 20,
+          height: 20,
+          color: isSelected == pos ? t1_colorPrimary : t1_textColorSecondary,
         ),
       ),
     );
   }
+
+  Widget mediaButton(String buttonText, String icon) {
+    return Column(
+      children: <Widget>[
+        Container(
+          decoration: BoxDecoration(shape: BoxShape.circle, color: t1_color_primary_light),
+          width: width / 5.5,
+          height: width / 5.5,
+          padding: EdgeInsets.all(width / 18),
+          child: SvgPicture.asset(
+            icon,
+            color: t1_colorPrimary,
+          ),
+        ),
+        SizedBox(
+          height: 2,
+        ),
+        text(buttonText, textColor: t1TextColorPrimary, fontSize: textSizeMedium, fontFamily: fontMedium)
+      ],
+      mainAxisAlignment: MainAxisAlignment.center,
+    );
+  }
+
+  Widget _buildCard()
+  {
+
+    return Container(
+      child: Column(
+        children: <Widget>[
+          new TextFormField(
+            decoration: const InputDecoration(
+              border: const UnderlineInputBorder(),
+              labelText: 'Card Number',
+            ),
+            onSaved: (String value) => _cardNumber = value,
+          ),
+          SizedBox(height: 10.0),
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              new Expanded(
+                child: new TextFormField(
+                  decoration: const InputDecoration(
+                    border: const UnderlineInputBorder(),
+                    labelText: 'CVV',
+                  ),
+                  onSaved: (String value) => _cvv = value,
+                ),
+              ),
+              SizedBox(height: 10.0),
+              new Expanded(
+                child: new TextFormField(
+                  decoration: const InputDecoration(
+                    border: const UnderlineInputBorder(),
+                    labelText: 'Expiry Month',
+                  ),
+                  onSaved: (String value) =>
+                  _expiryMonth = int.tryParse(value),
+                ),
+              ),
+              SizedBox(height: 10.0),
+              new Expanded(
+                child: new TextFormField(
+                  decoration: const InputDecoration(
+                    border: const UnderlineInputBorder(),
+                    labelText: 'Expiry Year',
+                  ),
+                  onSaved: (String value) =>
+                  _expiryYear = int.tryParse(value),
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
+
+    );
+
+  }
 }
 
-const Color green = const Color(0xFF3db76d);
-const Color lightBlue = const Color(0xFF34a5db);
-const Color navyBlue = const Color(0xFF031b33);
+class Slider extends StatelessWidget {
+  final String file;
+
+  Slider({Key key, @required this.file}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16),
+      child: Card(
+        semanticContainer: true,
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        elevation: 0,
+        margin: EdgeInsets.all(0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Image.asset(file, fit: BoxFit.fill),
+      ),
+    );
+  }
+}
