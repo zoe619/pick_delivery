@@ -14,8 +14,12 @@ class UserData extends ChangeNotifier
     double deliveryLongitude;
     double distance;
     String pickItem;
-    String pickPhone;
     String riderName;
     String riderEmail;
-    double amount;
+    String riderPhone;
+    String amount;
+    String deliveryName;
+    String deliveryEmail;
+    String deliveryPhone;
+    String note;
 }

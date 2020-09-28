@@ -132,33 +132,31 @@ class _MapState extends State<Map2>
                 ]
 
             ),
-            child: Flexible(
-              child: TextField(
-                onTap: ()async{
-                  Prediction p = await PlacesAutocomplete.show(
-                      context: context,
-                      apiKey: "AIzaSyD6dxWCuUM3KXxzuaDFn8KErN4-U2AWIIo",
-                      mode: Mode.overlay, // Mode.fullscreen
-                      onError: onError,
-                      language: "en",
-                      components: [new Component(Component.country, "ng")]);
-                      displayPrediction(p, locationScaffoldKey.currentState);
-                },
-                maxLines: 3,
-                cursorColor: Colors.black,
-                controller: locationController,
-                decoration: InputDecoration(
-                    icon: Container(
-                      margin: EdgeInsets.only(left: 8.0, bottom: 10.0),
-                      width: 10.0,
-                      height: 10.0,
-                      child: Icon(Icons.location_on, color: Colors.red),
-                    ),
-                    hintText: "Pick up location",
-                    border: InputBorder.none,
+            child: TextField(
+              onTap: ()async{
+                Prediction p = await PlacesAutocomplete.show(
+                    context: context,
+                    apiKey: "AIzaSyD6dxWCuUM3KXxzuaDFn8KErN4-U2AWIIo",
+                    mode: Mode.overlay, // Mode.fullscreen
+                    onError: onError,
+                    language: "en",
+                    components: [new Component(Component.country, "ng")]);
+                    displayPrediction(p, locationScaffoldKey.currentState);
+              },
+              maxLines: 3,
+              cursorColor: Colors.black,
+              controller: locationController,
+              decoration: InputDecoration(
+                  icon: Container(
+                    margin: EdgeInsets.only(left: 8.0, bottom: 10.0),
+                    width: 10.0,
+                    height: 10.0,
+                    child: Icon(Icons.location_on, color: Colors.red),
+                  ),
+                  hintText: "Pick up location",
+                  border: InputBorder.none,
 
-                    contentPadding: EdgeInsets.only(left: 15.0, top: 16.0)
-                ),
+                  contentPadding: EdgeInsets.only(left: 15.0, top: 16.0)
               ),
             ),
           ),

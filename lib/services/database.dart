@@ -5,6 +5,7 @@ import 'package:pick_delivery/model/channel.dart';
 import 'package:pick_delivery/model/contact.dart';
 import 'package:pick_delivery/model/error_code.dart';
 import 'package:pick_delivery/model/mobilecustomer.dart';
+import 'package:pick_delivery/model/order.dart';
 import 'package:pick_delivery/model/package.dart';
 import 'package:pick_delivery/model/products.dart';
 import 'package:pick_delivery/model/rider.dart';
@@ -154,18 +155,17 @@ class DatabaseService
   Future<List<Rider>> getRider()async
   {
 
-    var map = Map<String, dynamic>();
-    map['status'] = "active";
+
     try{
 
       String url = "https://monikonnect.com/new_mobile/pizza/getRider.php";
-      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
+      http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
       {
 
         List<Rider> list = parseResponseRider(response.body);
-        print(list);
+        print("from db $list");
         return list;
 
       }
@@ -183,6 +183,42 @@ class DatabaseService
   {
     final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
     return parsed.map<Rider>((json)=>Rider.fromJson(json)).toList();
+
+  }
+
+  Future<List<Order>> getOrder(String email)async
+  {
+
+    var map = Map<String, dynamic>();
+    map['email'] = email;
+
+    try{
+
+      String url = "https://monikonnect.com/new_mobile/pizza/getOrder.php";
+      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
+
+      if(response.statusCode == 200)
+      {
+
+        List<Order> list = parseResponseOrder(response.body);
+        print("from db $list");
+        return list;
+
+      }
+      else{
+        return  List<Order>();
+      }
+
+    }
+    catch(err){
+      return List<Order>();
+    }
+  }
+
+  List<Order> parseResponseOrder(String responseBody)
+  {
+    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+    return parsed.map<Order>((json)=>Order.fromJson(json)).toList();
 
   }
 
@@ -475,37 +511,45 @@ class DatabaseService
   addDelivery(String senderEmail, String pickAddress, double distance, double amount,
       double pickLatitude, double pickLongitude, double destinationLatitude, double destinationLongitude,
       String deliveryName, String deliveryEmail, deliveryPhone,
-      String destinationAddress, String note, String payMethod, String payStatus)async
+      String destinationAddress, String note, String riderName, String riderEmail, String riderPhone,
+      String payMethod, String payStatus, String item)async
   {
     try{
       var map = Map<String, dynamic>();
+
       map['senderEmail'] = senderEmail;
       map['pickAddress'] = pickAddress;
-      map['distance'] = distance;
-      map['amount'] = amount;
-      map['pickLatitude'] = pickLatitude;
-      map['pickLongitude'] = pickLongitude;
-      map['destinationLatitude'] = destinationLatitude;
-      map['destinationLongitude'] = destinationLongitude;
+      map['distance'] = distance.toString();
+      map['amount'] = amount.toString();
+      map['pickLatitude'] = pickLatitude.toString();
+      map['pickLongitude'] = pickLongitude.toString();
+      map['destinationLatitude'] = destinationLatitude.toString();
+      map['destinationLongitude'] = destinationLongitude.toString();
       map['deliveryName'] = deliveryName;
       map['deliveryEmail'] = deliveryEmail;
       map['deliveryPhone'] = deliveryPhone;
       map['destinationAddress'] = destinationAddress;
       map['note'] = note;
+      map['riderName'] = riderName;
+      map['riderEmail'] = riderEmail;
+      map['riderPhone'] = riderPhone;
+      map['payMethod'] = payMethod;
+      map['payStatus'] = payStatus;
+      map['item'] = item;
 
-      String url = "https://monikonnect/new_mobile/pizza/sub.php";
+      String url = "https://monikonnect.com/new_mobile/pizza/sub.php";
+
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 
 
       if(response.statusCode == 200)
       {
         List result = json.decode(response.body);
-        print(result);
         return result;
       }
       else{
 
-        var error = json.decode(response.body);
+        List error = json.decode(response.body);
 
         return error;
       }

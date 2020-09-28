@@ -109,6 +109,7 @@ class T1ListItem extends StatelessWidget
                   {
                    Provider.of<UserData>(context, listen: false).riderName = model.name;
                    Provider.of<UserData>(context, listen: false).riderEmail = model.email;
+                   Provider.of<UserData>(context, listen: false).riderPhone = model.phone;
                    Provider.of<UserData>(context, listen: false).amount = model.fee;
                    Navigator.push(context, MaterialPageRoute(
                      builder: (_)=>T1Dashboard()

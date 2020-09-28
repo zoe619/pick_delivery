@@ -30,10 +30,8 @@ class Pay extends StatefulWidget
 {
 
 
-  String item, phone, pickAddress, deliveryAddress, deliveryName, deliveryPhone, deliveryEmail, note;
-  double price, distance;
-  Pay({this.price, this.pickAddress, this.item, this.phone, this.deliveryAddress,
-    this.deliveryName, this.deliveryPhone, this.deliveryEmail, this.note, this.distance});
+  String item, deliveryName, deliveryPhone, deliveryEmail, note;
+  Pay({this.item, this.deliveryName, this.deliveryPhone, this.deliveryEmail, this.note});
 
   @override
   State<StatefulWidget> createState() {
@@ -57,8 +55,8 @@ class PayState extends State<Pay>
   final _formKey = GlobalKey<FormState>();
 
 
-  String item, email, phone, pick, pick_address, delivery_address, delivery_name, delivery_phone,
-      delivery_email, note, rider;
+  String item, email, phone, pick, pickAddress, deliveryAddress, deliveryName, deliveryPhone,
+      deliveryEmail, note, rider;
   bool _isLoading = false;
   bool bill_show = false;
   bool delivery_show = false;
@@ -87,7 +85,7 @@ class PayState extends State<Pay>
   int _expiryYear = 0;
   String payMethod;
   String payText = "Make Payment";
-  String senderName, senderEmail;
+  String senderEmail, riderName, riderEmail, riderPhone;
 
   double pickLatitude, pickLongitude, destinationLatitude, destinationLongitude;
   bool _isLocal = false;
@@ -95,13 +93,13 @@ class PayState extends State<Pay>
   String _reference;
 
 
-
+  String d;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    userId = Provider.of<UserData>(context, listen: false).currentUserId;
     change = Colors.white;
-     price = amount.round();
     _setupProfileUser();
   }
 
@@ -110,12 +108,33 @@ class PayState extends State<Pay>
     User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
-      senderName = user.name;
       senderEmail = user.email;
-      pickLongitude = Provider.of<UserData>(context, listen: false).pickLongitude;
+
+      pickLatitude = Provider.of<UserData>(context, listen: false).pickLatitude;
       pickLongitude = Provider.of<UserData>(context, listen: false).pickLongitude;
       destinationLatitude = Provider.of<UserData>(context, listen: false).deliveryLatitude;
       destinationLongitude = Provider.of<UserData>(context,listen: false).deliveryLongitude;
+      pickAddress = Provider.of<UserData>(context, listen: false).pickAddress;
+      deliveryAddress = Provider.of<UserData>(context, listen: false).deliveryAddress;
+      d = Provider.of<UserData>(context, listen: false).deliveryName;
+
+      riderName = Provider.of<UserData>(context, listen: false).riderName;
+      riderEmail = Provider.of<UserData>(context, listen: false).riderEmail;
+      riderPhone = Provider.of<UserData>(context, listen: false).riderPhone;
+
+      distance = Provider.of<UserData>(context, listen: false).distance;
+      distance = distance / 1000;
+      String am = Provider.of<UserData>(context, listen: false).amount;
+      double m = double.parse(am);
+      amount = m * distance;
+      price = m.round();
+
+        widget.deliveryName = Provider.of<UserData>(context, listen: false).deliveryName;
+        widget.deliveryEmail = Provider.of<UserData>(context, listen: false).deliveryEmail;
+        widget.deliveryPhone = Provider.of<UserData>(context, listen: false).deliveryPhone;
+        widget.item = Provider.of<UserData>(context, listen: false).pickItem;
+        widget.note = Provider.of<UserData>(context, listen: false).note;
+
     });
   }
 
@@ -151,14 +170,41 @@ class PayState extends State<Pay>
 
   _deliveryPay() async
   {
+
+    final dbService = Provider.of<DatabaseService>(context, listen: false);
+    if(_isLoading == false)
+    {
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(duration: new Duration(seconds: 2),
+            content:
+            new Row(
+              children: <Widget>[
+                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+                new Text("please wait...")
+              ],
+            ),
+            action: new SnackBarAction(
+                label: 'Ok',
+                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
+          ));
+
+    }
     try
     {
 
-      String payStatus = "no";
-      List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
-          senderEmail, widget.pickAddress, widget.distance, widget.price, pickLatitude, pickLongitude,
+      String payStatus = "Not paid";
+
+//      print(senderEmail + " "+ pickAddress + " " + " " +distance.toString() + " " +price.toString() + " "+
+//          pickLatitude.toString() + " "+ pickLongitude.toString() + " "+
+//          destinationLatitude.toString() + " " + destinationLongitude.toString() + " " +widget.deliveryName + " "+
+//          widget.deliveryEmail + " "+ widget.deliveryPhone + " " +
+//          deliveryAddress + " " +widget.note + " " + riderName + " "+ riderEmail + " " +riderPhone + " "+
+//          payMethod + " "+ payStatus + " "+ widget.item);
+
+      List res = await dbService.addDelivery(
+          senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
           destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-          widget.deliveryAddress, widget.note, payMethod, payStatus
+          deliveryAddress, widget.note, riderName, riderEmail, riderPhone, payMethod, payStatus, widget.item
       );
 
       Map<String, dynamic> map;
@@ -166,11 +212,15 @@ class PayState extends State<Pay>
       for(int i = 0; i < res.length; i++)
       {
         map = res[i];
+        setState(() {
+          _isLoading = true;
+        });
 
       }
       if(map['status'] == "Fail")
       {
         _showErrorDialog(map['msg'], map['status']);
+
       }
       else
       {
@@ -340,9 +390,9 @@ class PayState extends State<Pay>
 
           String payStatus = "paid";
           List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
-              senderEmail, widget.pickAddress, widget.distance, widget.price, pickLatitude, pickLongitude,
+              senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
               destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-              widget.deliveryAddress, widget.note, payMethod, payStatus
+              deliveryAddress, widget.note, riderName, riderEmail, riderPhone, payMethod, payStatus, widget.item
           );
 
           Map<String, dynamic> map;

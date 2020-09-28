@@ -44,6 +44,9 @@ class T1DashboardState extends State<T1Dashboard>
   var width;
   var height;
   final _pickFormKey = GlobalKey<FormState>();
+  final _deliveryFormKey = GlobalKey<FormState>();
+  final _noteFormKey = GlobalKey<FormState>();
+  final _riderFormKey = GlobalKey<FormState>();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final _mapFormKey = GlobalKey<FormState>();
@@ -71,6 +74,11 @@ class T1DashboardState extends State<T1Dashboard>
   TextEditingController pickPhoneController = new TextEditingController();
   TextEditingController riderController = new TextEditingController();
 
+  TextEditingController deliveryNameController = new TextEditingController();
+  TextEditingController deliveryPhoneController = new TextEditingController();
+  TextEditingController deliveryEmailController = new TextEditingController();
+  TextEditingController noteController = new TextEditingController();
+
   String userId;
   User user = new User();
 
@@ -82,7 +90,7 @@ class T1DashboardState extends State<T1Dashboard>
 
     if(widget.mapId == 1)
     {
-      pick_address = Provider.of<UserData>(context, listen: false).pickAddress;
+
       pick_show = true;
       pick_icon = Icon(Icons.cancel);
       pickController.text = Provider.of<UserData>(context, listen: false).pickAddress;
@@ -92,21 +100,14 @@ class T1DashboardState extends State<T1Dashboard>
     }
     if(widget.mapId == 2)
     {
-      delivery_address = Provider.of<UserData>(context, listen: false).deliveryAddress;
+
       delivery_show = true;
       delivery_icon = Icon(Icons.cancel);
       destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
       itemController.text = Provider.of<UserData>(context, listen: false).pickItem;
-      pickPhoneController.text = Provider.of<UserData>(context, listen: false).pickPhone;
     }
     else{
       destinationController.text = Provider.of<UserData>(context, listen: false).deliveryAddress;
-    }
-    if(Provider.of<UserData>(context, listen: false).distance != null)
-    {
-      distance = Provider.of<UserData>(context, listen: false).distance;
-      distance = distance / 1000;
-
     }
     if(Provider.of<UserData>(context, listen: false).riderName != null)
     {
@@ -114,7 +115,13 @@ class T1DashboardState extends State<T1Dashboard>
       rider_show = true;
       rider_icon = Icon(Icons.cancel);
       riderController.text = Provider.of<UserData>(context, listen: false).riderName;
-      amount = Provider.of<UserData>(context, listen: false).amount * distance;
+      deliveryNameController.text = Provider.of<UserData>(context, listen: false).deliveryName;
+      deliveryPhoneController.text = Provider.of<UserData>(context, listen: false).deliveryPhone;
+      deliveryEmailController.text = Provider.of<UserData>(context, listen: false).deliveryEmail;
+      itemController.text = Provider.of<UserData>(context, listen: false).pickItem;
+      noteController.text = Provider.of<UserData>(context, listen: false).note;
+
+
 
 
     }
@@ -199,19 +206,122 @@ class T1DashboardState extends State<T1Dashboard>
               )
           ),
           SizedBox(height: 16),
+
+        ],
+      ),
+    );
+
+  }
+  deliveryForm()
+  {
+    return Form(
+      key: _deliveryFormKey,
+      child: Column(
+        children: <Widget>[
           Padding(
               padding: const EdgeInsets.all(8),
               child: TextFormField(
-                controller: pickPhoneController,
-                keyboardType: TextInputType.phone,
+                onTap: (){
+                  bool ret = _savePickForm();
+                  if(ret){
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_)=>Map2(id:2),
+                    ));
+                  }
+
+
+                },
+                controller: destinationController,
+                keyboardType: TextInputType.text,
                 validator:(input)=>
-                input.trim().isEmpty  || input.trim().length < 11 ? 'Invalid input' : null,
-                onSaved:(input)=>phone = input,
+                input.trim().isEmpty  ? 'Input field is empty' : null,
+                onSaved:(input)=>delivery_address = input,
                 style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
                 obscureText: false,
                 decoration: InputDecoration(
                   contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                  hintText: 'Sender\'s phone',
+                  hintText: 'Delivery address',
+                  filled: true,
+                  fillColor: t1_edit_text_background,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                ),
+              )
+          ),
+          SizedBox(height: 16.0),
+          Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextFormField(
+                controller: deliveryNameController,
+                keyboardType: TextInputType.text,
+                validator:(input)=>
+                input.trim().isEmpty  ? 'Input field is empty' : null,
+                onSaved:(input)=>delivery_name = input,
+                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                obscureText: false,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                  hintText: 'Receiver\'s name',
+                  filled: true,
+                  fillColor: t1_edit_text_background,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                ),
+              )
+          ),
+          SizedBox(height: 16),
+          Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextFormField(
+                controller: deliveryPhoneController,
+                keyboardType: TextInputType.phone,
+                validator:(input)=>
+                input.trim().isEmpty  ? 'Input field is empty' : null,
+                onSaved:(input)=>delivery_phone = input,
+                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                obscureText: false,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                  hintText: 'Receiver\'s phone',
+                  filled: true,
+                  fillColor: t1_edit_text_background,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(40),
+                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                  ),
+                ),
+              )
+          ),
+          SizedBox(height: 16),
+          Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextFormField(
+                controller: deliveryEmailController,
+                keyboardType: TextInputType.emailAddress,
+                validator:(input)=>
+                input.trim().isEmpty  ? 'Input field is empty' : null,
+                onSaved:(input)=>delivery_email = input,
+                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                obscureText: false,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                  hintText: 'Receiver\'s email',
                   filled: true,
                   fillColor: t1_edit_text_background,
                   enabledBorder: OutlineInputBorder(
@@ -232,175 +342,65 @@ class T1DashboardState extends State<T1Dashboard>
     );
 
   }
-  deliveryForm()
-  {
-    return Column(
-      children: <Widget>[
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              onTap: (){
-                bool ret = _savePickForm();
-                if(ret){
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_)=>Map2(id:2),
-                  ));
-                }
-
-
-              },
-              controller: destinationController,
-              keyboardType: TextInputType.text,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>delivery_address = input,
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Delivery address',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-              ),
-            )
-        ),
-        SizedBox(height: 16.0),
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              keyboardType: TextInputType.text,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>delivery_name = input,
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Receiver\'s name',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-              ),
-            )
-        ),
-        SizedBox(height: 16),
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              keyboardType: TextInputType.phone,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>delivery_phone = input,
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Receiver\'s phone',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-              ),
-            )
-        ),
-        SizedBox(height: 16),
-        Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              validator:(input)=>
-              input.trim().isEmpty  ? 'Input field is empty' : null,
-              onSaved:(input)=>delivery_email = input,
-              style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-              obscureText: false,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-                hintText: 'Receiver\'s email',
-                filled: true,
-                fillColor: t1_edit_text_background,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-                ),
-              ),
-            )
-        ),
-        SizedBox(height: 16),
-
-      ],
-    );
-
-  }
 
   noteForm(){
-    return Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: TextFormField(
-          onSaved:(input)=>note = input,
-          style: TextStyle(fontSize: 18),
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
-            hintText: 'extra optional note',
+    return Form(
+      key: _noteFormKey,
+      child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: TextFormField(
+              controller: noteController,
+              validator:(input)=>
+              input.trim().isEmpty  ? 'Note is empty' : null,
+            onSaved:(input)=>note = input,
+            style: TextStyle(fontSize: 18),
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
+              hintText: 'optional note',
 
-          )));
+            ))),
+    );
   }
   riderForm(){
-    return Padding(
-        padding: const EdgeInsets.all(8),
-        child: TextFormField(
-          onTap: (){
-            Navigator.push(context, MaterialPageRoute(
-              builder: (_)=>Riders(),
-            ));
-          },
-          readOnly: true,
-          controller: riderController,
-          keyboardType: TextInputType.text,
-          validator:(input)=>
-          input.trim().isEmpty  ? 'Rider is empty' : null,
-          onSaved:(input)=>rider = input,
-          style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
-          obscureText: false,
-          decoration: InputDecoration(
-            contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
-            hintText: 'Pick a rider',
-            filled: true,
-            fillColor: t1_edit_text_background,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(40),
-              borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+    return Form(
+      key: _riderFormKey,
+      child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: TextFormField(
+            onTap: ()
+            {
+              bool ret = _saveDeliveryForm();
+              if(ret)
+              {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => Riders(),
+                ));
+              }
+            },
+            readOnly: true,
+            controller: riderController,
+            keyboardType: TextInputType.text,
+            validator:(input)=>
+            input.trim().isEmpty  ? 'Rider is empty' : null,
+            onSaved:(input)=>rider = input,
+            style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+            obscureText: false,
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+              hintText: 'Pick a rider',
+              filled: true,
+              fillColor: t1_edit_text_background,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(40),
+                borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(40),
+                borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+              ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(40),
-              borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
-            ),
-          ),
-        )
+          )
+      ),
     );
   }
 
@@ -431,19 +431,17 @@ class T1DashboardState extends State<T1Dashboard>
   _submit() async
   {
 
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_)=>Pay(),
-    ));
-    return;
-    setState(()=> _isLoading = false);
-    if(!_mapFormKey.currentState.validate())
+
+
+    if(!_deliveryFormKey.currentState.validate() && !_pickFormKey.currentState.validate()
+        && !_noteFormKey.currentState.validate() && !_riderFormKey.currentState.validate())
     {
       SizedBox.shrink();
     }
     else if(_isLoading == false)
     {
       _scaffoldKey.currentState.showSnackBar(
-          new SnackBar(duration: new Duration(seconds: 3),
+          new SnackBar(duration: new Duration(seconds: 1),
             content:
             new Row(
               children: <Widget>[
@@ -459,14 +457,22 @@ class T1DashboardState extends State<T1Dashboard>
     }
     try
     {
-      if(_mapFormKey.currentState.validate() && !_isLoading)
+      if(_deliveryFormKey.currentState.validate() && _pickFormKey.currentState.validate()
+          && _noteFormKey.currentState.validate() && _riderFormKey.currentState.validate() && !_isLoading)
       {
+
         _mapFormKey.currentState.save();
+        _deliveryFormKey.currentState.validate();
+        _pickFormKey.currentState.validate();
+        _noteFormKey.currentState.validate();
+        _riderFormKey.currentState.validate();
 
 
-        PaystackPay(price: amount, pickAddress: pick_address, item: item, phone: phone,
-          deliveryAddress: delivery_address, deliveryName: delivery_name, deliveryPhone: delivery_phone,
-            deliveryEmail: delivery_email, note: note, distance: distance);
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_)=>Pay(item: item,deliveryName: delivery_name, deliveryPhone: delivery_phone,
+              deliveryEmail: delivery_email, note: note)
+        ));
+
 
 
       }
@@ -632,22 +638,7 @@ class T1DashboardState extends State<T1Dashboard>
                                   ),
                                 ),
                                 SizedBox(height: 16.0),
-//                             Material(
-//                                elevation: 2,
-//                                shadowColor: Colors.deepOrangeAccent[200],
-//                                borderRadius: new BorderRadius.circular(40.0),
-//                                child: SizedBox(
-//                                  width: double.infinity,
-//                                  height: 60,
-//                                  child: MaterialButton(
-//                                      child: text("Make payment", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
-//                                      textColor: t1_white,
-//                                      shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
-//                                      color: t1_colorPrimary, onPressed:(){}
-//
-//                                      ),
-//                                 ),
-//                                ),
+
                               ],
                             ),
                           ),
@@ -711,7 +702,7 @@ class T1DashboardState extends State<T1Dashboard>
                     width: double.infinity,
                     height: 60,
                     child: MaterialButton(
-                        child: text("Submit Order", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                        child: text("Proceed", fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
                         textColor: t1_white,
                         shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
                         color: t1_colorPrimary, onPressed:_submit
@@ -779,7 +770,25 @@ class T1DashboardState extends State<T1Dashboard>
     else{
       _pickFormKey.currentState.save();
       Provider.of<UserData>(context, listen: false).pickItem = item;
-      Provider.of<UserData>(context, listen: false).pickPhone = phone;
+      return true;
+
+    }
+  }
+
+  bool _saveDeliveryForm()
+  {
+    if(!_deliveryFormKey.currentState.validate())
+    {
+      return false;
+
+    }
+    else{
+      _deliveryFormKey.currentState.save();
+      _noteFormKey.currentState.save();
+      Provider.of<UserData>(context, listen: false).deliveryName = delivery_name;
+      Provider.of<UserData>(context, listen: false).deliveryEmail = delivery_email;
+      Provider.of<UserData>(context, listen: false).deliveryPhone = delivery_phone;
+      Provider.of<UserData>(context,listen: false).note = note;
       return true;
 
     }
