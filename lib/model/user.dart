@@ -8,11 +8,12 @@ class User
   String email;
   String phone;
   String type;
+  String wallet;
 
 
 
 
-  User({this.id, this.name, this.email, this.phone, this.type});
+  User({this.id, this.name, this.email, this.phone, this.type, this.wallet});
 
 //  factory User.fromJson(Map<String, dynamic> json)
 //  {
@@ -33,7 +34,8 @@ class User
       name: doc.get('name'),
       email: doc.get('email'),
       phone: doc.get('phone'),
-      type: doc.get('type')
+      type: doc.get('type'),
+      wallet: doc.get('wallet')
 
     );
   }

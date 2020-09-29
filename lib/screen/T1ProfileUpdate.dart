@@ -135,7 +135,6 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
 
           DatabaseService.updateUserFirebase(user);
           _showErrorDialog("Profile Updated");
-//          Navigator.pop(context);
 
 
           setState(() {

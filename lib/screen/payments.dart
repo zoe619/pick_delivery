@@ -26,25 +26,27 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
 
-class Pay extends StatefulWidget
+class Payments extends StatefulWidget
 {
 
 
-  String item, deliveryName, deliveryPhone, deliveryEmail, note;
-  Pay({this.item, this.deliveryName, this.deliveryPhone, this.deliveryEmail, this.note});
+  final String email;
+  final User user;
+
+  Payments({this.email, this.user});
 
   @override
   State<StatefulWidget> createState() {
-    return PayState();
+    return PaymentState();
   }
 }
 
-class PayState extends State<Pay>
+class PaymentState extends State<Payments>
 {
 
   String backendUrl = 'https://api.paystack.co/transaction';
-  String paystackSecretKey = 'sk_test_b6e5c0450647906ada5b034c66fba4b080edccf2';
-  String paystackPublicKey = 'pk_test_87d402cddc5d33cff6a369a035059c3ebe352e29';
+  String paystackSecretKey = 'sk_live_a9a87b7497c6a00f9b472e77198c5774a6378394';
+  String paystackPublicKey = 'pk_live_140823c0754222c801446bd1b1b878f408f3b35a';
 
   var isSelected = 1;
   var width;
@@ -58,24 +60,12 @@ class PayState extends State<Pay>
   String item, email, phone, pick, pickAddress, deliveryAddress, deliveryName, deliveryPhone,
       deliveryEmail, note, rider;
   bool _isLoading = false;
-  bool bill_show = false;
-  bool delivery_show = false;
-  bool pick_show = false;
-  bool rider_show = false;
-  bool wall_show = false;
-  Color change = Colors.white;
-  Color change2 = Colors.white;
+  Color change = Colors.red;
 
 
   double distance, amount;
 
-
-
-  TextEditingController pickController = new TextEditingController();
-  TextEditingController destinationController = new TextEditingController();
-  TextEditingController itemController = new TextEditingController();
-  TextEditingController pickPhoneController = new TextEditingController();
-  TextEditingController riderController = new TextEditingController();
+  bool pick_show, bill_show;
 
   String userId;
   User user = new User();
@@ -86,61 +76,25 @@ class PayState extends State<Pay>
   int _expiryMonth = 0;
   int _expiryYear = 0;
   String payMethod;
-  String payText = "Make Payment";
-  String senderEmail, riderName, riderEmail, riderPhone;
+  String payText = "Submit";
 
-  double pickLatitude, pickLongitude, destinationLatitude, destinationLongitude;
   bool _isLocal = false;
-  int price;
+  int _price = 0;
   String _reference;
-  String _wallet;
+
 
   String d;
   @override
   void initState() {
     // TODO: implement initState
-    super.initState();
     PaystackPlugin.initialize(publicKey: paystackPublicKey);
+    super.initState();
     userId = Provider.of<UserData>(context, listen: false).currentUserId;
     change = Colors.white;
-    _setupProfileUser();
+
   }
 
-  _setupProfileUser() async
-  {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
-    setState(() {
-      user = profileUser;
-      senderEmail = user.email;
-      _wallet = user.wallet;
 
-      pickLatitude = Provider.of<UserData>(context, listen: false).pickLatitude;
-      pickLongitude = Provider.of<UserData>(context, listen: false).pickLongitude;
-      destinationLatitude = Provider.of<UserData>(context, listen: false).deliveryLatitude;
-      destinationLongitude = Provider.of<UserData>(context,listen: false).deliveryLongitude;
-      pickAddress = Provider.of<UserData>(context, listen: false).pickAddress;
-      deliveryAddress = Provider.of<UserData>(context, listen: false).deliveryAddress;
-      d = Provider.of<UserData>(context, listen: false).deliveryName;
-
-      riderName = Provider.of<UserData>(context, listen: false).riderName;
-      riderEmail = Provider.of<UserData>(context, listen: false).riderEmail;
-      riderPhone = Provider.of<UserData>(context, listen: false).riderPhone;
-
-      distance = Provider.of<UserData>(context, listen: false).distance;
-      distance = distance / 1000;
-      String am = Provider.of<UserData>(context, listen: false).amount;
-      double m = double.parse(am);
-      amount = m * distance;
-      price = amount.round();
-
-        widget.deliveryName = Provider.of<UserData>(context, listen: false).deliveryName;
-        widget.deliveryEmail = Provider.of<UserData>(context, listen: false).deliveryEmail;
-        widget.deliveryPhone = Provider.of<UserData>(context, listen: false).deliveryPhone;
-        widget.item = Provider.of<UserData>(context, listen: false).pickItem;
-        widget.note = Provider.of<UserData>(context, listen: false).note;
-
-    });
-  }
 
   _showErrorDialog(String errMessage, String status)
   {
@@ -154,8 +108,6 @@ class PayState extends State<Pay>
               FlatButton(
                   child: Text('Ok'),
                   onPressed: (){
-
-//                    Navigator.popAndPushNamed(context, "/subPage");
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (BuildContext context) => T1Dashboard()),
@@ -172,176 +124,12 @@ class PayState extends State<Pay>
 
   }
 
-  _walletPay() async
-  {
 
-    final dbService = Provider.of<DatabaseService>(context, listen: false);
-
-    int p = price + 50;
-    if(p > int.parse(_wallet))
-    {
-      _showErrorDialog("Insufficient wallet balance", "Error");
-      return;
-    }
-    if(_isLoading == false)
-    {
-      _scaffoldKey.currentState.showSnackBar(
-          new SnackBar(duration: new Duration(seconds: 2),
-            content:
-            new Row(
-              children: <Widget>[
-                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
-                new Text("please wait...")
-              ],
-            ),
-            action: new SnackBarAction(
-                label: 'Ok',
-                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
-          ));
-
-    }
-    try
-    {
-
-      String payStatus = "wallet";
-
-
-      List res = await dbService.addDelivery(
-          senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
-          destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-          deliveryAddress, widget.note, riderName, riderEmail, riderPhone, payMethod, payStatus, widget.item
-      );
-
-      Map<String, dynamic> map;
-
-      for(int i = 0; i < res.length; i++)
-      {
-        map = res[i];
-        setState(() {
-          _isLoading = true;
-        });
-
-      }
-      if(map['status'] == "Fail")
-      {
-        _showErrorDialog(map['msg'], map['status']);
-
-      }
-      else
-      {
-        String type = "sub";
-        double amount = price.ceilToDouble() + 50;
-
-        List res = await Provider.of<DatabaseService>(context, listen: false).wallet(senderEmail, type, amount);
-
-        Map<String, dynamic> map;
-
-        for(int i = 0; i < res.length; i++)
-        {
-          map = res[i];
-
-        }
-        if(map['status'] == "Fail")
-        {
-          _showErrorDialog(map['msg'], map['status']);
-          return;
-        }
-        else {
-          // update user in firebase
-          price = price + 50;
-          int prices = int.parse(_wallet) - price;
-          prices = prices.abs();
-          User user = User(
-            id: userId,
-            wallet: prices.toString(),
-          );
-
-          DatabaseService.updateWallet(user);
-
-          _showErrorDialog(map['msg'], map['status']);
-        }
-
-      }
-
-
-
-    }on PlatformException catch(error)
-    {
-      _showErrorDialog(error.message, "Error");
-    }
-  }
-  _deliveryPay() async
-  {
-
-    final dbService = Provider.of<DatabaseService>(context, listen: false);
-    if(_isLoading == false)
-    {
-      _scaffoldKey.currentState.showSnackBar(
-          new SnackBar(duration: new Duration(seconds: 2),
-            content:
-            new Row(
-              children: <Widget>[
-                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
-                new Text("please wait...")
-              ],
-            ),
-            action: new SnackBarAction(
-                label: 'Ok',
-                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
-          ));
-
-    }
-    try
-    {
-
-      String payStatus = "Not paid";
-
-//      print(senderEmail + " "+ pickAddress + " " + " " +distance.toString() + " " +price.toString() + " "+
-//          pickLatitude.toString() + " "+ pickLongitude.toString() + " "+
-//          destinationLatitude.toString() + " " + destinationLongitude.toString() + " " +widget.deliveryName + " "+
-//          widget.deliveryEmail + " "+ widget.deliveryPhone + " " +
-//          deliveryAddress + " " +widget.note + " " + riderName + " "+ riderEmail + " " +riderPhone + " "+
-//          payMethod + " "+ payStatus + " "+ widget.item);
-
-      List res = await dbService.addDelivery(
-          senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
-          destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-          deliveryAddress, widget.note, riderName, riderEmail, riderPhone, payMethod, payStatus, widget.item
-      );
-
-      Map<String, dynamic> map;
-
-      for(int i = 0; i < res.length; i++)
-      {
-        map = res[i];
-        setState(() {
-          _isLoading = true;
-        });
-
-      }
-      if(map['status'] == "Fail")
-      {
-        _showErrorDialog(map['msg'], map['status']);
-
-      }
-      else
-      {
-        _showErrorDialog(map['msg'], map['status']);
-
-      }
-
-
-
-    }on PlatformException catch(error)
-    {
-      _showErrorDialog(error.message, "Error");
-    }
-  }
   _startAfreshCharge() async
   {
-    if(payMethod == "pick")
-    {
+
       _formKey.currentState.save();
+
 
       Charge charge = Charge();
       charge.card = _getCardFromUI();
@@ -355,8 +143,8 @@ class PayState extends State<Pay>
         // setting them after setting an access code would throw an exception
 
         charge
-          ..amount = price * 100 // In base currency
-          ..email = senderEmail
+          ..amount = 5 * 100 // In base currency
+          ..email = widget.email
           ..reference = _getReference()
           ..putCustomField('Charged From', 'Pick Delivery');
         _chargeCard(charge);
@@ -366,13 +154,8 @@ class PayState extends State<Pay>
         charge.accessCode = await _fetchAccessCodeFrmServer(_getReference());
         _chargeCard(charge);
       }
-    }
-    else if(payMethod == "delivery"){
-      _deliveryPay();
-    }
-    else if(payMethod == "wallet"){
-      _walletPay();
-    }
+
+
   }
 
   _chargeCard(Charge charge)
@@ -402,7 +185,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Failed to authenticate your card please", "failed");
+        _showErrorDialog(e.message, "Failed");
 
 
         return;
@@ -411,7 +194,7 @@ class PayState extends State<Pay>
       {
         setState(() => _inProgress = false);
 
-        _showErrorDialog("Invalid amount", "failed");
+        _showErrorDialog(e.message, "Failed");
 
         return;
       }
@@ -419,7 +202,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Invalid email entered please try again", "failed");
+        _showErrorDialog(e.message, "Failed");
 
         return;
       }
@@ -427,7 +210,8 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Card not valid, try again", "failed");
+        _showErrorDialog(e.message, "Failed");
+        print(e.message);
 
 
         return;
@@ -436,7 +220,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Failed to charge card, please try again", "failed");
+        _showErrorDialog(e.message, "Failed");
         print(e.message);
 
         return;
@@ -444,7 +228,8 @@ class PayState extends State<Pay>
       else if (e is PaystackException)
       {
         setState(() => _inProgress = false);
-        _showErrorDialog("Paystack is currently not available, please try again", "failed");
+        _showErrorDialog(e.message, "Failed");
+        print(e.message);
         return;
 
       }
@@ -452,7 +237,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("paystack not initialized, try again", "failed");
+        _showErrorDialog(e.message, "Failed");
         return;
 
       }
@@ -460,7 +245,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("A transaction is currently processing, please wait till it concludes before attempting a new charge", "failed");
+        _showErrorDialog(e.message, "Failed");
         return;
 
       }
@@ -492,13 +277,12 @@ class PayState extends State<Pay>
 
         try
         {
+          setState(() {
+            amount = _price.ceilToDouble();
+          });
+          String type = "add";
 
-          String payStatus = "paid";
-          List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
-              senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
-              destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
-              deliveryAddress, widget.note, riderName, riderEmail, riderPhone, payMethod, payStatus, widget.item
-          );
+          List res = await Provider.of<DatabaseService>(context, listen: false).wallet(widget.email, type, amount);
 
           Map<String, dynamic> map;
 
@@ -510,9 +294,22 @@ class PayState extends State<Pay>
           if(map['status'] == "Fail")
           {
             _showErrorDialog(map['msg'], map['status']);
+            return;
           }
           else
           {
+            // update user in firebase
+            int price = int.parse(widget.user.wallet) + _price;
+            User user = User(
+                id: widget.user.id,
+                wallet: price.toString(),
+            );
+
+            DatabaseService.updateWallet(user);
+
+            setState(() {
+              _isLoading = true;
+            });
             _showErrorDialog(map['msg'], map['status']);
 
           }
@@ -561,9 +358,10 @@ class PayState extends State<Pay>
 
   Future<String> _fetchAccessCodeFrmServer(String reference) async
   {
-    int amounts = price * 100;
+
+    int amounts = _price * 100;
     var map = Map<String, dynamic>();
-    map['email'] = senderEmail;
+    map['email'] = widget.email;
     map['amount'] = amounts.toString();
     String url = 'https://monikonnect/new_mobile/pizza/initialize.php';
     String accessCode;
@@ -660,33 +458,8 @@ class PayState extends State<Pay>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Text('Subtotal'),
-                Text('NGN $price')
-              ],
-            ),
-            SizedBox(height: 5.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text('Total'),
-                Text('NGN ${price + 50}')
-              ],
-            ),
-          ],
-        )
-    );
-  }
-
-  _walletForm(){
-    return Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-        child: Column(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
                 Text('Wallet balance'),
-                Text('NGN $_wallet')
+                Text('NGN ${widget.user.wallet}')
               ],
             ),
           ],
@@ -738,53 +511,22 @@ class PayState extends State<Pay>
                                         GestureDetector(
                                           child: Card(
                                             child: ListTile(
-                                              leading: Icon(Icons.account_balance_wallet),
-                                              title: Text('Wallet Balance'),
-
-                                            ),
-                                          ),
-
-                                          onTap: (){
-                                            setState(() {
-                                              if(wall_show == false)
-                                              {
-                                                wall_show = true;
-
-
-                                              }
-                                              else{
-                                                wall_show = false;
-
-
-
-                                              }
-
-
-                                            });
-                                          },
-                                        ),
-                                        SizedBox(height: 5.0),
-                                        wall_show == true ? _walletForm() : SizedBox.shrink(),
-                                        SizedBox(height: 10.0),
-                                        GestureDetector(
-                                          child: Card(
-                                            child: ListTile(
                                               leading: Icon(Icons.note),
-                                              title: Text('Bill Summary'),
+                                              title: Text('Wallet summary'),
 
                                             ),
                                           ),
-
                                           onTap: (){
                                             setState(() {
                                               if(bill_show == false)
                                               {
                                                 bill_show = true;
+                                                change = Colors.white;
 
                                               }
                                               else{
                                                 bill_show = false;
-
+                                                change = Colors.white;
 
                                               }
 
@@ -795,96 +537,18 @@ class PayState extends State<Pay>
                                         SizedBox(height: 5.0),
                                         bill_show == true ? billForm() : SizedBox.shrink(),
                                         SizedBox(height: 10.0),
-                                        text('Select a payment option below', textColor: t1TextColorPrimary, fontSize: textSizeLargeMedium, fontFamily: fontMedium),
-                                        SizedBox(height: 5.0),
-                                        Column(
-                                          children: <Widget>[
-                                             Container(
-                                              decoration: BoxDecoration(
-                                              color: change2
-                                              ),
-                                               child: GestureDetector(
-                                                child: Card(
-                                                  child: ListTile(
-                                                    leading: Icon(Icons.account_balance_wallet),
-                                                    title: Text('Pay from wallet'),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              color: change
+                                          ),
 
-                                                  ),
-                                                ),
-                                                onTap: (){
-                                                  setState(() {
-                                                    if(wall_show == false)
-                                                    {
-                                                      change2 = Colors.red;
-                                                      payMethod = "wallet";
-                                                      payText = "Make Payment";
-                                                      pick_show = false;
-                                                      delivery_show = false;
-                                                      change = Colors.white;
-
-                                                    }
-                                                    else{
-                                                      change2 = Colors.red;
-                                                      change = Colors.white;
-                                                      payMethod = "wallet";
-                                                      payText = "Make Payment";
-                                                      pick_show = false;
-                                                      delivery_show = false;
-
-                                                    }
-
-
-                                                  });
-                                                },
-                                            ),
-                                             ),
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                  color: change
-                                              ),
-                                              child: GestureDetector(
-                                                child: Card(
-                                                  child: ListTile(
-                                                    leading: Icon(Icons.money_off),
-                                                    title: Text('Cash on delivery'),
-
-                                                  ),
-                                                ),
-                                                onTap: (){
-                                                  setState(() {
-                                                    if(delivery_show == false)
-                                                    {
-                                                      delivery_show = true;
-                                                      change = Colors.red;
-                                                      payMethod = "delivery";
-                                                      payText = "Submit";
-                                                      pick_show = false;
-                                                      change2 = Colors.white;
-
-                                                    }
-                                                    else{
-                                                      delivery_show = false;
-                                                      change = Colors.red;
-                                                      payMethod = "delivery";
-                                                      payText = "Submit";
-                                                      pick_show = false;
-                                                      change2 = Colors.white;
-
-                                                    }
-
-
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ],
                                         ),
                                         SizedBox(height: 5.0),
                                         GestureDetector(
                                           child: Card(
                                             child: ListTile(
                                               leading: Icon(Icons.monetization_on),
-                                              title: Text('Cash on pick-up'),
+                                              title: Text('Top up wallet'),
 
                                             ),
                                           ),
@@ -894,17 +558,11 @@ class PayState extends State<Pay>
                                               {
                                                 pick_show = true;
                                                 change = Colors.white;
-                                                change2 = Colors.white;
-                                                payMethod = "pick";
-                                                payText = "Make Payment";
 
                                               }
                                               else{
                                                 pick_show = false;
-                                                payMethod = 'pick';
                                                 change = Colors.white;
-                                                change2 = Colors.white;
-                                                payText = "Make Payment";
 
                                               }
 
@@ -933,7 +591,7 @@ class PayState extends State<Pay>
               ),
             ),
           ),
-          TopBar('Pick payment'),
+          TopBar('Pick Wallet'),
           Positioned(
             bottom: 15.0,
             right: 15.0,
@@ -961,7 +619,7 @@ class PayState extends State<Pay>
                     width: double.infinity,
                     height: 60,
                     child: MaterialButton(
-                        child: text(payText, fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
+                        child: text('Submit', fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
                         textColor: t1_white,
                         shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
                         color: t1_colorPrimary, onPressed:_startAfreshCharge
@@ -1026,10 +684,24 @@ class PayState extends State<Pay>
       child: Column(
         children: <Widget>[
           new TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              border: const UnderlineInputBorder(),
+              labelText: 'Amount',
+            ),
+            validator:(input)=>
+            input.trim().isEmpty  ? 'Amount is required' : null,
+            onSaved: (String value) => _price = int.tryParse(value),
+          ),
+          SizedBox(height: 10.0),
+          new TextFormField(
+            keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               border: const UnderlineInputBorder(),
               labelText: 'Card Number',
             ),
+            validator:(input)=>
+            input.trim().isEmpty  ? 'Card number is required' : null,
             onSaved: (String value) => _cardNumber = value,
           ),
           SizedBox(height: 10.0),
@@ -1039,20 +711,26 @@ class PayState extends State<Pay>
             children: <Widget>[
               new Expanded(
                 child: new TextFormField(
+                  keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     labelText: 'CVV',
                   ),
+                  validator:(input)=>
+                  input.trim().isEmpty  ? 'CVV is required' : null,
                   onSaved: (String value) => _cvv = value,
                 ),
               ),
               SizedBox(height: 10.0),
               new Expanded(
                 child: new TextFormField(
+                  keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     labelText: 'Expiry Month',
                   ),
+                  validator:(input)=>
+                  input.trim().isEmpty  ? 'Expiry Month is required' : null,
                   onSaved: (String value) =>
                   _expiryMonth = int.tryParse(value),
                 ),
@@ -1060,10 +738,13 @@ class PayState extends State<Pay>
               SizedBox(height: 10.0),
               new Expanded(
                 child: new TextFormField(
+                  keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     border: const UnderlineInputBorder(),
                     labelText: 'Expiry Year',
                   ),
+                  validator:(input)=>
+                  input.trim().isEmpty  ? 'Expiry Year is required' : null,
                   onSaved: (String value) =>
                   _expiryYear = int.tryParse(value),
                 ),

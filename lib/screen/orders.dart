@@ -17,7 +17,11 @@ import 'package:pick_delivery/utils/T1Strings.dart';
 import 'package:pick_delivery/utils/T1Widget.dart';
 import 'package:provider/provider.dart';
 
-class Orders extends StatefulWidget {
+class Orders extends StatefulWidget
+{
+  final String email;
+  Orders({this.email});
+
   static var tag = "/Orders";
 
   @override
@@ -35,23 +39,23 @@ class OrdersState extends State<Orders>
   String senderEmail;
   String userId;
 
+
   @override
   void initState() {
     super.initState();
     mListings = getListings();
     userId = Provider.of<UserData>(context, listen: false).currentUserId;
-    _setupProfileUser();
-    _getOrders();
+
 
   }
 
   _getOrders() async
   {
-    List<Order> orders = await Provider.of<DatabaseService>(context, listen: false).getOrder(senderEmail);
+    List<Order> orders = await Provider.of<DatabaseService>(context, listen: false).getOrder(widget.email);
     setState(() {
       _orders = orders;
     });
-    print(_orders);
+
   }
   _setupProfileUser() async
   {
@@ -66,16 +70,26 @@ class OrdersState extends State<Orders>
   {
 
     return Scaffold(
-      body: Container(
-        child: Column(
-          children: <Widget>[
-            TopBar('Orders'),
-            _orders == null ? Platform.isIOS ? Center(child: CupertinoActivityIndicator()) :
-            Center(child: CircularProgressIndicator()) :
-            Expanded(
+      body: FutureBuilder(
+        future: _getOrders(),
+        builder: (BuildContext context, AsyncSnapshot snapshot)
+        {
+          if(_orders == null)
+          {
+            return Center(
+              child: Platform.isIOS ? CupertinoActivityIndicator() : CircularProgressIndicator(),
+            );
+          }
 
-              child: ListView.builder(
-                  scrollDirection: Axis.vertical,
+          return Center(
+              child: Container(
+              child: Column(
+              children: <Widget>[
+              TopBar('Orders'),
+                Expanded(
+
+                child: ListView.builder(
+                scrollDirection: Axis.vertical,
                   itemCount: _orders.length,
                   shrinkWrap: true,
                   itemBuilder: (context, index)
@@ -85,15 +99,22 @@ class OrdersState extends State<Orders>
                       return T1ListItem(_orders[index], index);
                     }
                     else{
-                      return SizedBox.shrink();
-                    }
+                       return Center(
+                         child: text('No order history'),
+                       );
+                      }
 
-                  }),
-            )
-          ],
+                  }
+               ),
+             )
+            ],
+           ),
+          )
+          );
+         }
         ),
-      ),
-    );
+      );
+
   }
 }
 
@@ -101,6 +122,7 @@ class T1ListItem extends StatelessWidget
 {
   Order model;
   int pos;
+  String status;
 
   T1ListItem(Order model, int pos)
   {
@@ -111,6 +133,12 @@ class T1ListItem extends StatelessWidget
   @override
   Widget build(BuildContext context)
   {
+
+
+    status = model.status;
+    if(status == "transit"){
+      status = "Track location";
+    }
     var width = MediaQuery.of(context).size.width;
     return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -124,14 +152,7 @@ class T1ListItem extends StatelessWidget
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-//                        ClipRRect(
-//                          child: Image.asset(
-//                            model.img,
-//                            width: width / 5.5,
-//                            height: width / 6,
-//                          ),
-//                          borderRadius: BorderRadius.circular(12),
-//                        ),
+                        text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                         Expanded(
                           child: Container(
                             padding: EdgeInsets.only(left: 16),
@@ -142,7 +163,7 @@ class T1ListItem extends StatelessWidget
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
                                     text(model.riderName, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
-                                    text('NGN '+ model.time, fontSize: textSizeMedium),
+                                    text(model.time, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                                   ],
                                 ),
                                 text(model.riderPhone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),
@@ -152,11 +173,18 @@ class T1ListItem extends StatelessWidget
                         )
                       ],
                       mainAxisAlignment: MainAxisAlignment.start,
+
                     ),
                     SizedBox(
                       height: 16,
                     ),
-                    text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
+
+                    Column(
+                      children: <Widget>[
+
+                        text(status, fontSize: textSizeLargeMedium, textColor: Colors.red, fontFamily: fontMedium),
+                      ],
+                    ),
                   ],
                 ),
               ),

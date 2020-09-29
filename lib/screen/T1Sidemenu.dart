@@ -10,6 +10,7 @@ import 'package:pick_delivery/screen/T1Login.dart';
 import 'package:pick_delivery/screen/T1Profile.dart';
 import 'package:pick_delivery/screen/contact.dart';
 import 'package:pick_delivery/screen/orders.dart';
+import 'package:pick_delivery/screen/payments.dart';
 import 'package:pick_delivery/services/auth_service.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
@@ -122,15 +123,21 @@ class T1SideMenuState extends State<T1SideMenu>
                         ));
                       },
                         child: menuItem('Home')),
-                    menuItem('Notifications'),
+//                    menuItem('Notifications'),
                     GestureDetector(
                       onTap: (){
                         Navigator.push(context, MaterialPageRoute(
-                          builder: (_)=>Orders(),
+                          builder: (_)=>Orders(email: user.email),
                         ));
                       },
                         child: menuItem('Delivery History')),
-                    menuItem('Payments'),
+                    GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_)=>Payments(email: user.email, user: user),
+                          ));
+                        },
+                        child: menuItem('Payments')),
                     GestureDetector(
                       onTap: (){
                         Navigator.push(context, MaterialPageRoute(

@@ -201,7 +201,6 @@ class DatabaseService
       {
 
         List<Order> list = parseResponseOrder(response.body);
-        print("from db $list");
         return list;
 
       }
@@ -508,6 +507,39 @@ class DatabaseService
 
   }
 
+  wallet(String email, String type, double amount)async
+  {
+
+    try{
+      var map = Map<String, dynamic>();
+      map['email'] = email;
+      map['type'] = type;
+      map['amount'] = amount.toString();
+
+      String url = "https://monikonnect.com/new_mobile/pizza/wallet.php";
+      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
+      if(response.statusCode == 200)
+      {
+        List result = json.decode(response.body);
+
+        return result;
+      }
+      else{
+
+        var error = json.decode(response.body);
+
+        return error;
+      }
+
+
+    }
+    catch(err)
+    {
+      return err.toString();
+    }
+
+  }
+
   addDelivery(String senderEmail, String pickAddress, double distance, double amount,
       double pickLatitude, double pickLongitude, double destinationLatitude, double destinationLongitude,
       String deliveryName, String deliveryEmail, deliveryPhone,
@@ -764,6 +796,13 @@ class DatabaseService
     usersRef.doc(user.id).update({
       'name' : user.name,
       'phone':user.phone
+    });
+  }
+
+  static void updateWallet(User user)
+  {
+    usersRef.doc(user.id).update({
+      'wallet' : user.wallet
     });
   }
 
