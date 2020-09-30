@@ -9,7 +9,7 @@ import 'package:pick_delivery/model/rider.dart';
 import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/model/user_data.dart';
 import 'package:pick_delivery/screen/T1Dashboard.dart';
-import 'package:pick_delivery/screen/orderDetail2.dart';
+import 'package:pick_delivery/screen/orderDetail.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -18,21 +18,21 @@ import 'package:pick_delivery/utils/T1Strings.dart';
 import 'package:pick_delivery/utils/T1Widget.dart';
 import 'package:provider/provider.dart';
 
-class Orders extends StatefulWidget
+class RidersDashboard extends StatefulWidget
 {
   final String email;
-  Orders({this.email});
+  RidersDashboard({this.email});
 
-  static var tag = "/Orders";
+  static var tag = "/delivery";
 
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return OrdersState();
+    return RidersDashboardState();
   }
 }
 
-class OrdersState extends State<Orders>
+class RidersDashboardState extends State<RidersDashboard>
 {
   List<T1Model> mListings;
   List<Order> _orders;
@@ -72,49 +72,49 @@ class OrdersState extends State<Orders>
 
     return Scaffold(
       body: FutureBuilder(
-        future: _getOrders(),
-        builder: (BuildContext context, AsyncSnapshot snapshot)
-        {
-          if(_orders == null)
+          future: _getOrders(),
+          builder: (BuildContext context, AsyncSnapshot snapshot)
           {
+            if(_orders == null)
+            {
+              return Center(
+                child: Platform.isIOS ? CupertinoActivityIndicator() : CircularProgressIndicator(),
+              );
+            }
+
             return Center(
-              child: Platform.isIOS ? CupertinoActivityIndicator() : CircularProgressIndicator(),
+                child: Container(
+                  child: Column(
+                    children: <Widget>[
+                      TopBar('Delivery history'),
+                      Expanded(
+
+                        child: ListView.builder(
+                            scrollDirection: Axis.vertical,
+                            itemCount: _orders.length,
+                            shrinkWrap: true,
+                            itemBuilder: (context, index)
+                            {
+                              if(_orders.length != 0)
+                              {
+                                return T1ListItem(_orders[index], index);
+                              }
+                              else{
+                                return Center(
+                                  child: text('No Delivery history'),
+                                );
+                              }
+
+                            }
+                        ),
+                      )
+                    ],
+                  ),
+                )
             );
           }
-
-          return Center(
-              child: Container(
-              child: Column(
-              children: <Widget>[
-              TopBar('Orders'),
-                Expanded(
-
-                child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                  itemCount: _orders.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index)
-                  {
-                    if(_orders.length != 0)
-                    {
-                      return T1ListItem(_orders[index], index);
-                    }
-                    else{
-                       return Center(
-                         child: text('No order history'),
-                       );
-                      }
-
-                  }
-               ),
-             )
-            ],
-           ),
-          )
-          );
-         }
-        ),
-      );
+      ),
+    );
 
   }
 }
@@ -152,7 +152,7 @@ class T1ListItem extends StatelessWidget
                 child: GestureDetector(
                   onTap: (){
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_)=>OrderDetail2(orders: model),
+                      builder: (_)=>OrderDetail(orders: model),
                     ));
                   },
                   child: Column(
@@ -169,11 +169,10 @@ class T1ListItem extends StatelessWidget
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
-                                      text(model.riderName, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
-                                      text(model.time, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
+                                      text(model.senderName, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
                                     ],
                                   ),
-                                  text(model.riderPhone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),
+                                  text(model.senderPhone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),
                                 ],
                               ),
                             ),
@@ -190,6 +189,7 @@ class T1ListItem extends StatelessWidget
                         children: <Widget>[
 
                           text(status, fontSize: textSizeLargeMedium, textColor: Colors.red, fontFamily: fontMedium),
+                          text(model.time, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                         ],
                       ),
                     ],

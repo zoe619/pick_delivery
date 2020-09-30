@@ -138,8 +138,9 @@ class _T1Signup extends State<T1Signup>
         }
         else
         {
-
-          String res =  await authService.signUp(name, email, password, phone, user_type, address, charge);
+          String license = "";
+          String wallet = "0";
+          String res =  await authService.signUp(name, email, password, phone, user_type, address, charge, license, wallet);
 
 
           if(res != null)

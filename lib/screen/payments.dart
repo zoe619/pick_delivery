@@ -511,7 +511,7 @@ class PaymentState extends State<Payments>
                                         GestureDetector(
                                           child: Card(
                                             child: ListTile(
-                                              leading: Icon(Icons.note),
+                                              leading: Icon(Icons.account_balance_wallet),
                                               title: Text('Wallet summary'),
 
                                             ),

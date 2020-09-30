@@ -9,8 +9,11 @@ import 'package:pick_delivery/screen/T1Listing.dart';
 import 'package:pick_delivery/screen/T1Login.dart';
 import 'package:pick_delivery/screen/T1Profile.dart';
 import 'package:pick_delivery/screen/contact.dart';
+import 'package:pick_delivery/screen/delivery.dart';
+import 'package:pick_delivery/screen/notification.dart';
 import 'package:pick_delivery/screen/orders.dart';
 import 'package:pick_delivery/screen/payments.dart';
+import 'package:pick_delivery/screen/ridersDashboard.dart';
 import 'package:pick_delivery/services/auth_service.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
@@ -117,27 +120,51 @@ class T1SideMenuState extends State<T1SideMenu>
                       height: 24,
                     ),
                     GestureDetector(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (_)=>T1Dashboard(),
-                        ));
+                      onTap: ()
+                      {
+                        if(user.type == "Customer"){
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_)=>T1Dashboard(),
+                          ));
+                        }
+                        else{
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_)=>T1Dashboard(),
+                          ));
+                        }
+
                       },
                         child: menuItem('Home')),
-//                    menuItem('Notifications'),
-                    GestureDetector(
+                    user.type == "Rider" ?  GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_)=>Notifications(email: user.email),
+                          ));
+                        },
+                        child: menuItem('Pending delivery')) : SizedBox.shrink(),
+                  user.type == "Customer" ?  GestureDetector(
                       onTap: (){
                         Navigator.push(context, MaterialPageRoute(
                           builder: (_)=>Orders(email: user.email),
                         ));
                       },
-                        child: menuItem('Delivery History')),
-                    GestureDetector(
+                        child: menuItem('Request History')
+                    ) : SizedBox.shrink(),
+                    user.type == "Rider" ?  GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_)=>RidersDashboard(email: user.email),
+                          ));
+                        },
+                        child: menuItem('Delivery History')
+                    ) : SizedBox.shrink(),
+                    user.type == "Customer" ?  GestureDetector(
                         onTap: (){
                           Navigator.push(context, MaterialPageRoute(
                             builder: (_)=>Payments(email: user.email, user: user),
                           ));
                         },
-                        child: menuItem('Payments')),
+                        child: menuItem('Payments')) : SizedBox.shrink(),
                     GestureDetector(
                       onTap: (){
                         Navigator.push(context, MaterialPageRoute(

@@ -143,9 +143,15 @@ class _T1ProfileState extends State<T1Profile>
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                           child: view(),
                         ),
-//                          SizedBox(height: 8),
-//                          profileText(user.type, maxline: 2),
-//                          SizedBox(height: 16),
+                        SizedBox(height: 8),
+                     user.type == "Rider" ? user.fee != null ? profileText("NGN " + user.fee) : SizedBox.shrink() : SizedBox.shrink(),
+                        SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                          child: view(),
+                        ),
+                        SizedBox(height: 8),
+                        user.type == "Rider" ? user.license != null ? profileText(user.license) : SizedBox.shrink() : SizedBox.shrink(),
                       ],
                     ),
                   ),
@@ -168,6 +174,11 @@ class _T1ProfileState extends State<T1Profile>
                         ),
                         SizedBox(height: 8),
                         user.email != null ? profileText(user.email) : SizedBox.shrink(),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                          child: view(),
+                        ),
+                      user.type == "Rider" ? user.address != null ? profileText(user.address) : SizedBox.shrink() :SizedBox.shrink(),
                         SizedBox(height: 16.0),
                         Center(child: GestureDetector(
                             onTap: (){

@@ -5,14 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pick_delivery/model/T1_model.dart';
+import 'package:pick_delivery/model/order.dart';
 import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/model/user_data.dart';
 import 'package:pick_delivery/screen/T1Listing.dart';
 import 'package:pick_delivery/screen/T1Sidemenu.dart';
 import 'package:pick_delivery/screen/location.dart';
+import 'package:pick_delivery/screen/orderDetail.dart';
 import 'package:pick_delivery/screen/pay.dart';
 import 'package:pick_delivery/screen/pay2.dart';
 import 'package:pick_delivery/screen/riders.dart';
+import 'package:pick_delivery/screen/ridersDashboard.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -82,11 +86,18 @@ class T1DashboardState extends State<T1Dashboard>
   String userId;
   User user = new User();
 
+  List<T1Model> mListings;
+  List<Order> _orders;
+
+  String senderEmail;
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    userId = Provider.of<UserData>(context, listen: false).currentUserId;
+    _setupProfileUser();
 
     if(widget.mapId == 1)
     {
@@ -122,8 +133,6 @@ class T1DashboardState extends State<T1Dashboard>
       noteController.text = Provider.of<UserData>(context, listen: false).note;
 
 
-
-
     }
 
 
@@ -136,7 +145,18 @@ class T1DashboardState extends State<T1Dashboard>
     setState(() {
       user = profileUser;
     });
+    _getOrders();
   }
+
+  _getOrders() async
+  {
+    List<Order> orders = await Provider.of<DatabaseService>(context, listen: false).getOrder(user.email);
+    setState(() {
+      _orders = orders;
+    });
+
+  }
+
 
   pickupForm()
   {
@@ -431,63 +451,69 @@ class T1DashboardState extends State<T1Dashboard>
   _submit() async
   {
 
+     if(user.type == "Rider"){
+       Navigator.push(context, MaterialPageRoute(
+         builder: (_)=>RidersDashboard(email: user.email),
+       ));
+     }
+     else {
+       if (!_deliveryFormKey.currentState.validate() &&
+           !_pickFormKey.currentState.validate()
+           && !_noteFormKey.currentState.validate() &&
+           !_riderFormKey.currentState.validate()) {
+         SizedBox.shrink();
+       }
+       else if (_isLoading == false) {
+         _scaffoldKey.currentState.showSnackBar(
+             new SnackBar(duration: new Duration(seconds: 1),
+               content:
+               new Row(
+                 children: <Widget>[
+                   Platform.isIOS
+                       ? new CupertinoActivityIndicator()
+                       : new CircularProgressIndicator(),
+                   new Text("please wait...")
+                 ],
+               ),
+               action: new SnackBarAction(
+                   label: 'Ok',
+                   onPressed: () =>
+                       _scaffoldKey.currentState.removeCurrentSnackBar()),
+             ));
+       }
+       try {
+         if (_deliveryFormKey.currentState.validate() &&
+             _pickFormKey.currentState.validate()
+             && _noteFormKey.currentState.validate() &&
+             _riderFormKey.currentState.validate() && !_isLoading) {
+           _mapFormKey.currentState.save();
+           _deliveryFormKey.currentState.validate();
+           _pickFormKey.currentState.validate();
+           _noteFormKey.currentState.validate();
+           _riderFormKey.currentState.validate();
 
 
-    if(!_deliveryFormKey.currentState.validate() && !_pickFormKey.currentState.validate()
-        && !_noteFormKey.currentState.validate() && !_riderFormKey.currentState.validate())
-    {
-      SizedBox.shrink();
-    }
-    else if(_isLoading == false)
-    {
-      _scaffoldKey.currentState.showSnackBar(
-          new SnackBar(duration: new Duration(seconds: 1),
-            content:
-            new Row(
-              children: <Widget>[
-                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
-                new Text("please wait...")
-              ],
-            ),
-            action: new SnackBarAction(
-                label: 'Ok',
-                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
-          ));
-
-    }
-    try
-    {
-      if(_deliveryFormKey.currentState.validate() && _pickFormKey.currentState.validate()
-          && _noteFormKey.currentState.validate() && _riderFormKey.currentState.validate() && !_isLoading)
-      {
-
-        _mapFormKey.currentState.save();
-        _deliveryFormKey.currentState.validate();
-        _pickFormKey.currentState.validate();
-        _noteFormKey.currentState.validate();
-        _riderFormKey.currentState.validate();
-
-
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_)=>Pay(item: item,deliveryName: delivery_name, deliveryPhone: delivery_phone,
-              deliveryEmail: delivery_email, note: note)
-        ));
-
-
-
-      }
-
-    }
-    on PlatformException catch (err) {
-      _showErrorDialog(err.message);
-    }
-
+           Navigator.push(context, MaterialPageRoute(
+               builder: (_) =>
+                   Pay(item: item,
+                       deliveryName: delivery_name,
+                       deliveryPhone: delivery_phone,
+                       deliveryEmail: delivery_email,
+                       note: note)
+           ));
+         }
+       }
+       on PlatformException catch (err) {
+         _showErrorDialog(err.message);
+       }
+     }
   }
 
 
   @override
   Widget build(BuildContext context)
   {
+
     width = MediaQuery.of(context).size.width;
     height = MediaQuery.of(context).size.height;
     changeStatusColor(Colors.white);
@@ -495,6 +521,7 @@ class T1DashboardState extends State<T1Dashboard>
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: t1_white,
+
       body: Stack(
         children: <Widget>[
           SingleChildScrollView(
@@ -503,17 +530,23 @@ class T1DashboardState extends State<T1Dashboard>
             child: Container(
               child: Column(
                 children: <Widget>[
+                  user != null ?
                   Container(
                       padding: EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
+                          user.type == "Customer" ?
                           Center(
                             child: text('Start a delivery', textColor: t1TextColorPrimary,
                                 fontSize: textSizeNormal, fontFamily: fontBold),
+                          ) : Center(
+                            child: text('All delivery', textColor: t1TextColorPrimary,
+                                fontSize: textSizeNormal, fontFamily: fontBold),
                           ),
                           SizedBox(height: 10),
+                          user.type == "Customer" ?
                           Padding(
                             padding: const EdgeInsets.only(left: 10.0, right: 10),
                             child: Column(
@@ -641,10 +674,32 @@ class T1DashboardState extends State<T1Dashboard>
 
                               ],
                             ),
-                          ),
+                          ) :
+                             _orders == null ? Platform.isIOS ? Center(child: CupertinoActivityIndicator ()) :
+                             Center(child: CircularProgressIndicator()) :
+                             ListView.builder(
+                                scrollDirection: Axis.vertical,
+                                itemCount: _orders.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, index)
+                                {
+                                  if(_orders.length != 0)
+                                  {
+                                    return T1ListItem(_orders[index], index);
+                                  }
+                                  else{
+                                    return Center(
+                                      child: text('No order history'),
+                                    );
+                                  }
+
+                                }
+                            ),
+
 
                         ],
-                      )),
+                      )) : Platform.isIOS ? Center(child: CupertinoActivityIndicator ()) :
+                  Center(child: CircularProgressIndicator()),
 
                 ],
               ),
@@ -675,6 +730,7 @@ class T1DashboardState extends State<T1Dashboard>
               ),
             ),
           ),
+          user.type == "Customer" ?
           Positioned(
             bottom: 15.0,
             right: 15.0,
@@ -694,7 +750,8 @@ class T1DashboardState extends State<T1Dashboard>
                   ]
 
               ),
-              child:Material(
+              child:
+              Material(
                   elevation: 2,
                   shadowColor: Colors.deepOrangeAccent[200],
                   borderRadius: new BorderRadius.circular(40.0),
@@ -709,11 +766,12 @@ class T1DashboardState extends State<T1Dashboard>
                     ),
                   )),
             ),
-          ),
+          ) : SizedBox.shrink(),
 
         ],
       ),
     );
+
   }
 
   Widget tabItem(var pos, var icon) {
@@ -815,5 +873,94 @@ class Slider extends StatelessWidget {
         child: Image.asset(file, fit: BoxFit.fill),
       ),
     );
+  }
+}
+
+class T1ListItem extends StatelessWidget
+{
+  Order model;
+  int pos;
+  String status;
+
+  T1ListItem(Order model, int pos)
+  {
+    this.model = model;
+    this.pos = pos;
+  }
+
+  @override
+  Widget build(BuildContext context)
+  {
+
+
+    status = model.status;
+    if(status == "transit"){
+      status = "Track location";
+    }
+    var width = MediaQuery.of(context).size.width;
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Container(
+          decoration: boxDecoration(radius: 10, showShadow: true),
+          child: Stack(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.all(16),
+                child: GestureDetector(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_)=>OrderDetail(orders: model)
+                    ));
+                  },
+                  child: Column(
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.only(left: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      text(model.senderName, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
+
+                                    ],
+                                  ),
+                                  text(model.senderPhone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.start,
+
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+
+                      Column(
+                        children: <Widget>[
+
+                          text(status, fontSize: textSizeLargeMedium, textColor: Colors.red, fontFamily: fontMedium),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 4,
+                height: 35,
+                margin: EdgeInsets.only(top: 16),
+                color: pos % 2 == 0 ? t1TextColorPrimary : t1_colorPrimary,
+              )
+            ],
+          ),
+        ));
   }
 }

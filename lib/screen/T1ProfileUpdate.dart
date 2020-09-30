@@ -30,11 +30,14 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
   final _formKey = GlobalKey<FormState>();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  String name, email, phone, type;
+  String name, email, phone, fee, address, license, type;
 
   TextEditingController nameController = new TextEditingController();
   TextEditingController emailController = new TextEditingController();
   TextEditingController phoneController = new TextEditingController();
+  TextEditingController feeController = new TextEditingController();
+  TextEditingController addressController = new TextEditingController();
+  TextEditingController licenseController = new TextEditingController();
   bool _isLoading = false;
   String userId;
 
@@ -49,6 +52,12 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
     nameController.text = user.name;
     emailController.text = user.email;
     phoneController.text = user.phone;
+    if(user.type == "Rider"){
+      feeController.text = user.fee;
+      addressController.text = user.address;
+      licenseController.text = user.license;
+    }
+
 
 
   }
@@ -110,8 +119,15 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
 
 
         final dbService = Provider.of<DatabaseService>(context, listen: false);
+        if(user.type == "Customer"){
+          setState(() {
+            fee = "0";
+            address = "0";
+            license = "0";
+          });
+        }
 //        update user info in mysql server database
-        List res = await dbService.updateUser(name, email, phone);
+        List res = await dbService.updateUser(name, email, phone, fee, address, license);
         Map<String, dynamic> map;
         for(int i = 0; i < res.length; i++)
         {
@@ -130,7 +146,10 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
           User user = User(
               id: userId,
               name: name,
-              phone: phone
+              phone: phone,
+              fee: fee,
+              address: address,
+              license: license
           );
 
           DatabaseService.updateUserFirebase(user);
@@ -246,7 +265,6 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
                           )
                       ),
                       SizedBox(height: 16),
-
                       Padding(
                           padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
                           child: TextFormField(
@@ -274,6 +292,90 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
                           )
                       ),
                       SizedBox(height: 16),
+                      user.type == "Rider" ? Column(
+                        children: <Widget>[
+                          Padding(
+                              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                              child: TextFormField(
+                                controller: feeController,
+                                keyboardType: TextInputType.number,
+                                validator:(input)=>
+                                input.trim().isEmpty  ? 'Input field is empty' : null,
+                                onSaved:(input)=>fee = input,
+                                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                                obscureText: false,
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                                  hintText: 'delivery fee',
+                                  filled: true,
+                                  fillColor: t1_edit_text_background,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                ),
+                              )
+                          ),
+                          SizedBox(height: 16),
+                          Padding(
+                              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                              child: TextFormField(
+                                controller: addressController,
+                                keyboardType: TextInputType.text,
+                                validator:(input)=>
+                                input.trim().isEmpty  ? 'Input field is empty' : null,
+                                onSaved:(input)=>address = input,
+                                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                                obscureText: false,
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                                  hintText: 'address',
+                                  filled: true,
+                                  fillColor: t1_edit_text_background,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                ),
+                              )
+                          ),
+                          SizedBox(height: 16),
+                          Padding(
+                              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                              child: TextFormField(
+                                controller: licenseController,
+                                keyboardType: TextInputType.text,
+                                validator:(input)=>
+                                input.trim().isEmpty  ? 'Input field is empty' : null,
+                                onSaved:(input)=>license = input,
+                                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                                obscureText: false,
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                                  hintText: 'license',
+                                  filled: true,
+                                  fillColor: t1_edit_text_background,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                ),
+                              )
+                          ),
+                        ],
+                      ) : SizedBox.shrink(),
 
                     ],
                   ),

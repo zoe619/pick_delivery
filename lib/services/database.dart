@@ -214,6 +214,35 @@ class DatabaseService
     }
   }
 
+  Future<List<Order>> getOrderType(String email, String type)async
+  {
+
+    var map = Map<String, dynamic>();
+    map['email'] = email;
+    map['type'] = type;
+
+    try{
+
+      String url = "https://monikonnect.com/new_mobile/pizza/getOrderType.php";
+      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
+
+      if(response.statusCode == 200)
+      {
+
+        List<Order> list = parseResponseOrder(response.body);
+        return list;
+
+      }
+      else{
+        return  List<Order>();
+      }
+
+    }
+    catch(err){
+      return List<Order>();
+    }
+  }
+
   List<Order> parseResponseOrder(String responseBody)
   {
     final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
@@ -475,7 +504,7 @@ class DatabaseService
     }
   }
 
-  updateUser(String name, String email, String phone)async
+  updateUser(String name, String email, String phone, String fee, String address, String license)async
   {
 
     try{
@@ -483,6 +512,9 @@ class DatabaseService
       map['email'] = email;
       map['phone'] = phone;
       map['name'] = name;
+      map['fee'] = fee;
+      map['address'] = address;
+      map['license'] = license;
       String url = "https://monikonnect.com/new_mobile/pizza/update.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       if(response.statusCode == 200)
@@ -795,7 +827,10 @@ class DatabaseService
   {
     usersRef.doc(user.id).update({
       'name' : user.name,
-      'phone':user.phone
+      'phone':user.phone,
+      'fee': user.fee,
+      'address': user.address,
+      'license': user.license
     });
   }
 
