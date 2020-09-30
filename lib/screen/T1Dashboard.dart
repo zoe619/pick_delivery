@@ -753,7 +753,7 @@ class T1DashboardState extends State<T1Dashboard>
               child:
               Material(
                   elevation: 2,
-                  shadowColor: Colors.deepOrangeAccent[200],
+                  shadowColor: t1_colorPrimary,
                   borderRadius: new BorderRadius.circular(40.0),
                   child: SizedBox(
                     width: double.infinity,
@@ -946,7 +946,7 @@ class T1ListItem extends StatelessWidget
                       Column(
                         children: <Widget>[
 
-                          text(status, fontSize: textSizeLargeMedium, textColor: Colors.red, fontFamily: fontMedium),
+                          text(status, fontSize: textSizeLargeMedium, textColor: t1_colorPrimary, fontFamily: fontMedium),
                         ],
                       ),
                     ],

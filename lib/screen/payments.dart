@@ -131,6 +131,20 @@ class PaymentState extends State<Payments>
       _formKey.currentState.save();
 
 
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(duration: new Duration(seconds: 15),
+            content:
+            new Row(
+              children: <Widget>[
+                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+                new Text("processing...")
+              ],
+            ),
+            action: new SnackBarAction(
+                label: 'Ok',
+                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
+          ));
+
       Charge charge = Charge();
       charge.card = _getCardFromUI();
 
@@ -143,7 +157,7 @@ class PaymentState extends State<Payments>
         // setting them after setting an access code would throw an exception
 
         charge
-          ..amount = 5 * 100 // In base currency
+          ..amount = _price * 100 // In base currency
           ..email = widget.email
           ..reference = _getReference()
           ..putCustomField('Charged From', 'Pick Delivery');
@@ -219,6 +233,7 @@ class PaymentState extends State<Payments>
       else if (e is ChargeException)
       {
 
+
         setState(() => _inProgress = false);
         _showErrorDialog(e.message, "Failed");
         print(e.message);
@@ -229,7 +244,6 @@ class PaymentState extends State<Payments>
       {
         setState(() => _inProgress = false);
         _showErrorDialog(e.message, "Failed");
-        print(e.message);
         return;
 
       }
@@ -270,8 +284,16 @@ class PaymentState extends State<Payments>
     {
 
 
+      bool response;
+      if(_isLocal){
+        response = true;
+      }
+      else{
+        response = await _verifyOnServer(transaction.reference);
+      }
 
-      bool response = await _verifyOnServer(transaction.reference);
+
+
       if(response)
       {
 

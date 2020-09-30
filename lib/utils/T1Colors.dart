@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-const t1_colorPrimary = Color(0XFFff8080);
+const t1_colorPrimary = Color(0XFFFBC02D);
 const t1_colorPrimary_light = Color(0XFFFFEEEE);
 const t1_colorPrimaryDark = Color(0XFFff8080);
 const t1_colorAccent = Color(0XFFff8080);

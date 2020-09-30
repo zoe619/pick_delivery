@@ -131,7 +131,6 @@ class DatabaseService
       {
 
         List<Contact> list = parseResponseContact(response.body);
-        print(list);
         return list;
 
       }
@@ -165,7 +164,6 @@ class DatabaseService
       {
 
         List<Rider> list = parseResponseRider(response.body);
-        print("from db $list");
         return list;
 
       }
@@ -490,7 +488,6 @@ class DatabaseService
       if(res.statusCode == 200)
       {
         List result = json.decode(res.body);
-        print(result);
         return result;
       }
       else{

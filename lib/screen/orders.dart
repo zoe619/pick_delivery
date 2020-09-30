@@ -162,7 +162,7 @@ class T1ListItem extends StatelessWidget
                           text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.only(left: 16),
+                              padding: EdgeInsets.only(left: 14),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
@@ -170,7 +170,7 @@ class T1ListItem extends StatelessWidget
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
                                       text(model.riderName, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
-                                      text(model.time, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
+                                      text(model.time, fontSize: textSizeMedium, maxLine: 3, textColor: t1TextColorPrimary),
                                     ],
                                   ),
                                   text(model.riderPhone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),
@@ -189,7 +189,7 @@ class T1ListItem extends StatelessWidget
                       Column(
                         children: <Widget>[
 
-                          text(status, fontSize: textSizeLargeMedium, textColor: Colors.red, fontFamily: fontMedium),
+                          text(status, fontSize: textSizeLargeMedium, textColor: t1_colorPrimary, fontFamily: fontMedium),
                         ],
                       ),
                     ],

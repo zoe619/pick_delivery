@@ -188,7 +188,7 @@ class T1ListItem extends StatelessWidget
                       Column(
                         children: <Widget>[
 
-                          text(status, fontSize: textSizeLargeMedium, textColor: Colors.red, fontFamily: fontMedium),
+                          text(status, fontSize: textSizeLargeMedium, textColor: t1_colorPrimary, fontFamily: fontMedium),
                           text(model.time, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                         ],
                       ),

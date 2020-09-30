@@ -43,8 +43,8 @@ class PayState extends State<Pay>
 {
 
   String backendUrl = 'https://api.paystack.co/transaction';
-  String paystackSecretKey = 'sk_test_b6e5c0450647906ada5b034c66fba4b080edccf2';
-  String paystackPublicKey = 'pk_test_87d402cddc5d33cff6a369a035059c3ebe352e29';
+  String paystackSecretKey = 'sk_live_a9a87b7497c6a00f9b472e77198c5774a6378394';
+  String paystackPublicKey = 'pk_live_140823c0754222c801446bd1b1b878f408f3b35a';
 
   var isSelected = 1;
   var width;
@@ -90,7 +90,7 @@ class PayState extends State<Pay>
   String senderEmail, riderName, riderEmail, riderPhone;
 
   double pickLatitude, pickLongitude, destinationLatitude, destinationLongitude;
-  bool _isLocal = false;
+  bool _isLocal = true;
   int price;
   String _reference;
   String _wallet;
@@ -343,6 +343,20 @@ class PayState extends State<Pay>
     {
       _formKey.currentState.save();
 
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(duration: new Duration(seconds: 15),
+            content:
+            new Row(
+              children: <Widget>[
+                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+                new Text("processing...")
+              ],
+            ),
+            action: new SnackBarAction(
+                label: 'Ok',
+                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
+          ));
+
       Charge charge = Charge();
       charge.card = _getCardFromUI();
 
@@ -402,7 +416,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Failed to authenticate your card please", "failed");
+        _showErrorDialog(e.message, "Failed");
 
 
         return;
@@ -411,7 +425,7 @@ class PayState extends State<Pay>
       {
         setState(() => _inProgress = false);
 
-        _showErrorDialog("Invalid amount", "failed");
+        _showErrorDialog(e.message, "Failed");
 
         return;
       }
@@ -419,7 +433,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Invalid email entered please try again", "failed");
+        _showErrorDialog(e.message, "Failed");
 
         return;
       }
@@ -427,8 +441,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Card not valid, try again", "failed");
-
+        _showErrorDialog(e.message, "Failed");
 
         return;
       }
@@ -436,15 +449,14 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("Failed to charge card, please try again", "failed");
-        print(e.message);
+        _showErrorDialog(e.message, "Failed");
 
         return;
+
       }
       else if (e is PaystackException)
       {
         setState(() => _inProgress = false);
-        _showErrorDialog("Paystack is currently not available, please try again", "failed");
         return;
 
       }
@@ -452,7 +464,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("paystack not initialized, try again", "failed");
+        _showErrorDialog(e.message, "Failed");
         return;
 
       }
@@ -460,7 +472,7 @@ class PayState extends State<Pay>
       {
 
         setState(() => _inProgress = false);
-        _showErrorDialog("A transaction is currently processing, please wait till it concludes before attempting a new charge", "failed");
+        _showErrorDialog(e.message, "Failed");
         return;
 
       }
@@ -486,7 +498,13 @@ class PayState extends State<Pay>
 
 
 
-      bool response = await _verifyOnServer(transaction.reference);
+      bool response;
+      if(_isLocal){
+        response = true;
+      }
+      else{
+        response = await _verifyOnServer(transaction.reference);
+      }
       if(response)
       {
 
@@ -815,7 +833,7 @@ class PayState extends State<Pay>
                                                   setState(() {
                                                     if(wall_show == false)
                                                     {
-                                                      change2 = Colors.red;
+                                                      change2 = t1_colorPrimary;
                                                       payMethod = "wallet";
                                                       payText = "Make Payment";
                                                       pick_show = false;
@@ -824,7 +842,7 @@ class PayState extends State<Pay>
 
                                                     }
                                                     else{
-                                                      change2 = Colors.red;
+                                                      change2 = t1_colorPrimary;
                                                       change = Colors.white;
                                                       payMethod = "wallet";
                                                       payText = "Make Payment";
@@ -855,7 +873,7 @@ class PayState extends State<Pay>
                                                     if(delivery_show == false)
                                                     {
                                                       delivery_show = true;
-                                                      change = Colors.red;
+                                                      change = t1_colorPrimary;
                                                       payMethod = "delivery";
                                                       payText = "Submit";
                                                       pick_show = false;
@@ -864,7 +882,7 @@ class PayState extends State<Pay>
                                                     }
                                                     else{
                                                       delivery_show = false;
-                                                      change = Colors.red;
+                                                      change = t1_colorPrimary;
                                                       payMethod = "delivery";
                                                       payText = "Submit";
                                                       pick_show = false;
