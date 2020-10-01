@@ -426,7 +426,6 @@ class PaymentState extends State<Payments>
     {
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       result = json.decode(response.body);
-      print(result);
       Map<String, dynamic> maps;
 
       for(int i = 0; i < result.length; i++)

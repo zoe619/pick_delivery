@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pick_delivery/model/contact.dart';
 import 'package:pick_delivery/model/order.dart';
+import 'package:pick_delivery/screen/tracker.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
@@ -32,6 +34,7 @@ class _OrderDetailState extends State<OrderDetail2>
     super.initState();
 
   }
+  String btnStatus;
 
 
   Widget counter(String counter, String counterName)
@@ -220,7 +223,7 @@ class _OrderDetailState extends State<OrderDetail2>
                                   child: text(btnText, fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
                                   textColor: t1_white,
                                   shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
-                                  color: t1_colorPrimary, onPressed:(){}
+                                  color: t1_colorPrimary, onPressed:_submit
                               ),
                             )),
                       ],
@@ -235,5 +238,59 @@ class _OrderDetailState extends State<OrderDetail2>
         TopBar('Request Details'),
       ],
     );
+  }
+
+  _showErrorDialog(String errMessage, String status)
+  {
+    showDialog(
+        context: context,
+        builder: (_){
+          return AlertDialog(
+            title: Text(status),
+            content: Text(errMessage),
+            actions: <Widget>[
+              Platform.isIOS
+                  ? new CupertinoButton(
+                child: Text('Ok'),
+                onPressed: ()=>Navigator.pop(context),
+              ) : FlatButton(
+                  child: Text('Ok'),
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                  }
+              )
+            ],
+          );
+        }
+    );
+
+  }
+
+  _submit()
+  {
+
+    if(btnStatus == "completed"){
+      return;
+    }
+
+
+
+    try
+    {
+
+      if(btnStatus == "transit")
+      {
+
+         Navigator.push(context, MaterialPageRoute(
+           builder: (_)=>Tracker(),
+         ));
+      }
+
+
+    }
+    on PlatformException catch (err) {
+      _showErrorDialog(err.message, "Error");
+    }
   }
 }

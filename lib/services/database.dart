@@ -569,6 +569,38 @@ class DatabaseService
 
   }
 
+  updateStat(String id, String status)async
+  {
+
+    try{
+      var map = Map<String, dynamic>();
+      map['id'] = id;
+      map['status'] = status;
+
+      String url = "https://monikonnect.com/new_mobile/pizza/updateStat.php";
+      http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
+      if(response.statusCode == 200)
+      {
+        List result = json.decode(response.body);
+
+        return result;
+      }
+      else{
+
+        var error = json.decode(response.body);
+
+        return error;
+      }
+
+
+    }
+    catch(err)
+    {
+      return err.toString();
+    }
+
+  }
+
   addDelivery(String senderEmail, String pickAddress, double distance, double amount,
       double pickLatitude, double pickLongitude, double destinationLatitude, double destinationLongitude,
       String deliveryName, String deliveryEmail, deliveryPhone,

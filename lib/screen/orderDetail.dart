@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pick_delivery/model/contact.dart';
 import 'package:pick_delivery/model/order.dart';
 import 'package:pick_delivery/services/database.dart';
@@ -25,13 +26,15 @@ class OrderDetail extends StatefulWidget
 class _OrderDetailState extends State<OrderDetail>
 {
 
-
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   @override
   initState()
   {
     super.initState();
 
   }
+  String btnStatus;
+  String id;
 
 
   Widget counter(String counter, String counterName)
@@ -47,11 +50,11 @@ class _OrderDetailState extends State<OrderDetail>
     changeStatusColor(t1_app_background);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: t1_app_background,
       body: Stack(
         children: <Widget>[
           SingleChildScrollView(
-
             child: Expanded(
               child: Column(
                 children: <Widget>[
@@ -73,15 +76,26 @@ class _OrderDetailState extends State<OrderDetail>
 
 
     String btnText;
-    if(order.status == "awaiting pick-up"){
+    if(order.status == "awaiting pick-up")
+    {
       btnText = "Picked up";
+      setState(() {
+        btnStatus = order.status;
+      });
     }
     else if(order.status == "transit"){
       btnText = "Delivered";
+      setState(() {
+        btnStatus = order.status;
+      });
     }
     else {
       btnText = order.status;
+      btnStatus = order.status;
     }
+    setState(() {
+      id = order.id;
+    });
     final profileImg = new Container(
         margin: new EdgeInsets.symmetric(horizontal: 16.0),
         alignment: FractionalOffset.center,
@@ -215,7 +229,7 @@ class _OrderDetailState extends State<OrderDetail>
                                   child: text(btnText, fontSize: textSizeLargeMedium, textColor: t1_white, fontFamily: fontMedium),
                                   textColor: t1_white,
                                   shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
-                                  color: t1_colorPrimary, onPressed:(){}
+                                  color: t1_colorPrimary, onPressed:_submit
                               ),
                             )),
                       ],
@@ -230,5 +244,114 @@ class _OrderDetailState extends State<OrderDetail>
           TopBar('Order Details'),
       ],
     );
+  }
+  _showErrorDialog(String errMessage, String status)
+  {
+    showDialog(
+        context: context,
+        builder: (_){
+          return AlertDialog(
+            title: Text(status),
+            content: Text(errMessage),
+            actions: <Widget>[
+              Platform.isIOS
+                  ? new CupertinoButton(
+                child: Text('Ok'),
+                onPressed: ()=>Navigator.pop(context),
+              ) : FlatButton(
+                  child: Text('Ok'),
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                  }
+              )
+            ],
+          );
+        }
+    );
+
+  }
+
+  _submit()
+  {
+
+     if(btnStatus == "completed"){
+       return;
+     }
+    _scaffoldKey.currentState.showSnackBar(
+        new SnackBar(duration: new Duration(seconds: 5),
+          content:
+          new Row(
+            children: <Widget>[
+              Platform.isIOS
+                  ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+              new Text("please wait...")
+            ],
+          ),
+          action: new SnackBarAction(
+              label: 'OK',
+              onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
+        ));
+
+
+
+
+       final dbService = Provider.of<DatabaseService>(context, listen: false);
+
+
+      try
+      {
+        String status;
+        if(btnStatus == "awaiting pick-up")
+        {
+          status = "transit";
+          List res = dbService.updateStat(id, status);
+          Map<String, dynamic> map;
+
+          for(int i = 0; i < res.length; i++)
+          {
+            map = res[i];
+
+          }
+          if(map['status'] == "Fail")
+          {
+            _showErrorDialog(map['msg'], map['status']);
+            return;
+          }
+          else
+          {
+            _showErrorDialog(map['msg'], map['status']);
+            return;
+          }
+
+        }
+        else if(btnStatus == "transit")
+        {
+          status = "completed";
+          List res = dbService.updateStat(id, status);
+          Map<String, dynamic> map;
+
+          for(int i = 0; i < res.length; i++)
+          {
+            map = res[i];
+
+          }
+          if(map['status'] == "Fail")
+          {
+            _showErrorDialog(map['msg'], map['status']);
+            return;
+          }
+          else
+          {
+            _showErrorDialog(map['msg'], map['status']);
+            return;
+          }
+
+        }
+
+      }
+      on PlatformException catch (err) {
+      _showErrorDialog(err.message, "Error");
+      }
   }
 }
