@@ -162,7 +162,7 @@ class T1ListItem extends StatelessWidget
                           text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.only(left: 14),
+                              padding: EdgeInsets.only(left: 18),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[

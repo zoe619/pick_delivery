@@ -55,14 +55,12 @@ class _OrderDetailState extends State<OrderDetail>
       body: Stack(
         children: <Widget>[
           SingleChildScrollView(
-            child: Expanded(
-              child: Column(
-                children: <Widget>[
-                  widget.orders != null ? _buildProfileInfo(widget.orders)  : CircularProgressIndicator(),
-                  Divider(),
+            child: Column(
+              children: <Widget>[
+                widget.orders != null ? _buildProfileInfo(widget.orders)  : CircularProgressIndicator(),
+                Divider(),
 
-                ],),
-            ),
+              ],),
 
 
           ),
@@ -277,6 +275,7 @@ class _OrderDetailState extends State<OrderDetail>
   _submit() async
   {
 
+
      if(btnStatus == "completed"){
        return;
      }
@@ -310,7 +309,7 @@ class _OrderDetailState extends State<OrderDetail>
             btnStatus = "transit";
           });
 
-          List res = dbService.updateStat(id, btnStatus);
+          List res = await dbService.updateStat(id, btnStatus);
           Map<String, dynamic> map;
 
           for(int i = 0; i < res.length; i++)
@@ -335,7 +334,8 @@ class _OrderDetailState extends State<OrderDetail>
           setState(() {
             btnStatus = "completed";
           });
-          List res = dbService.updateStat(id, btnStatus);
+          List res = await dbService.updateStat(id, btnStatus);
+          print(res);
           Map<String, dynamic> map;
 
           for(int i = 0; i < res.length; i++)

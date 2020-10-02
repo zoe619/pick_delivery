@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_paystack/flutter_paystack.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pick_delivery/model/bank.dart';
 import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/model/user_data.dart';
 import 'package:pick_delivery/screen/T1Dashboard.dart';
@@ -64,6 +65,7 @@ class PayState extends State<Pay>
   bool pick_show = false;
   bool rider_show = false;
   bool wall_show = false;
+  bool bank_show = false;
   Color change = Colors.white;
   Color change2 = Colors.white;
 
@@ -95,6 +97,8 @@ class PayState extends State<Pay>
   int price;
   String _reference;
   String _wallet;
+  String _accountName, _accountNumber, _bank;
+
 
   String d;
   @override
@@ -105,6 +109,18 @@ class PayState extends State<Pay>
     userId = Provider.of<UserData>(context, listen: false).currentUserId;
     change = Colors.white;
     _setupProfileUser();
+    _getBank();
+  }
+
+  _getBank()async
+  {
+    List<Bank> bank = await Provider.of<DatabaseService>(context,listen: false).getBank();
+    Bank b = bank[0];
+    setState(() {
+      _bank = b.bank;
+      _accountName = b.accountName;
+      _accountNumber = b.accountNumber;
+    });
   }
 
   _setupProfileUser() async
@@ -176,7 +192,7 @@ class PayState extends State<Pay>
 
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (BuildContext context) => Orders()),
+                      MaterialPageRoute(builder: (BuildContext context) => T1Dashboard()),
                       ModalRoute.withName('/'),
                     );
 
@@ -221,11 +237,7 @@ class PayState extends State<Pay>
     try
     {
 
-      String payStatus = "wallet";
-      setState(() {
-        amount  = 19;
-      });
-
+      String payStatus = "Paid";
 
       List res = await dbService.addDelivery(
           senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
@@ -253,7 +265,6 @@ class PayState extends State<Pay>
 
         String type = "sub";
         double amount = price.ceilToDouble() + 50;
-
 
         List res = await Provider.of<DatabaseService>(context, listen: false).wallet(senderEmail, type, amount);
 
@@ -361,6 +372,68 @@ class PayState extends State<Pay>
       _showErrorDialog(error.message, "Error");
     }
   }
+
+  _transferPay() async
+  {
+
+    final dbService = Provider.of<DatabaseService>(context, listen: false);
+    if(_isLoading == false)
+    {
+      _scaffoldKey.currentState.showSnackBar(
+          new SnackBar(duration: new Duration(seconds: 2),
+            content:
+            new Row(
+              children: <Widget>[
+                Platform.isIOS ? new CupertinoActivityIndicator() : new CircularProgressIndicator(),
+                new Text("please wait...")
+              ],
+            ),
+            action: new SnackBarAction(
+                label: 'Ok',
+                onPressed: () => _scaffoldKey.currentState.removeCurrentSnackBar()),
+          ));
+
+    }
+    try
+    {
+
+      String payStatus = "Not paid";
+
+      List res = await dbService.addDelivery(
+          senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
+          destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
+          deliveryAddress, widget.note, riderName, riderEmail, riderPhone, payMethod, payStatus, widget.item
+      );
+
+      Map<String, dynamic> map;
+
+      for(int i = 0; i < res.length; i++)
+      {
+        map = res[i];
+        setState(() {
+          _isLoading = true;
+        });
+
+      }
+      if(map['status'] == "Fail")
+      {
+        _showErrorDialog(map['msg'], map['status']);
+
+      }
+      else
+      {
+        _dispose();
+        _showErrorDialog(map['msg'], map['status']);
+
+      }
+
+
+
+    }on PlatformException catch(error)
+    {
+      _showErrorDialog(error.message, "Error");
+    }
+  }
   _startAfreshCharge() async
   {
     if(payMethod == "pick")
@@ -410,6 +483,9 @@ class PayState extends State<Pay>
     }
     else if(payMethod == "wallet"){
       _walletPay();
+    }
+    else if(payMethod == "transfer"){
+      _transferPay();
     }
   }
 
@@ -535,7 +611,7 @@ class PayState extends State<Pay>
         try
         {
 
-          String payStatus = "paid";
+          String payStatus = "Paid";
           List res = await Provider.of<DatabaseService>(context, listen: false).addDelivery(
               senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
               destinationLatitude, destinationLongitude, widget.deliveryName, widget.deliveryEmail, widget.deliveryPhone,
@@ -720,7 +796,8 @@ class PayState extends State<Pay>
     );
   }
 
-  _walletForm(){
+  _walletForm()
+  {
     return Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: Column(
@@ -730,6 +807,41 @@ class PayState extends State<Pay>
               children: <Widget>[
                 Text('Wallet balance'),
                 Text('NGN $_wallet')
+              ],
+            ),
+          ],
+        )
+    );
+  }
+
+
+  _bankForm()
+  {
+    return Padding(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Bank Name'),
+                Text('$_bank')
+              ],
+            ),
+            SizedBox(height: 5.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Account Name'),
+                Text('$_accountName')
+              ],
+            ),
+            SizedBox(height: 5.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Account Number'),
+                Text('$_accountNumber')
               ],
             ),
           ],
@@ -863,6 +975,7 @@ class PayState extends State<Pay>
                                                       payText = "Make Payment";
                                                       pick_show = false;
                                                       delivery_show = false;
+                                                      bank_show = false;
                                                       change = Colors.white;
 
                                                     }
@@ -873,6 +986,7 @@ class PayState extends State<Pay>
                                                       payText = "Make Payment";
                                                       pick_show = false;
                                                       delivery_show = false;
+                                                      bank_show = false;
 
                                                     }
 
@@ -902,6 +1016,7 @@ class PayState extends State<Pay>
                                                       payMethod = "delivery";
                                                       payText = "Submit";
                                                       pick_show = false;
+                                                      bank_show = false;
                                                       change2 = Colors.white;
 
                                                     }
@@ -911,6 +1026,7 @@ class PayState extends State<Pay>
                                                       payMethod = "delivery";
                                                       payText = "Submit";
                                                       pick_show = false;
+                                                      bank_show = false;
                                                       change2 = Colors.white;
 
                                                     }
@@ -920,6 +1036,47 @@ class PayState extends State<Pay>
                                                 },
                                               ),
                                             ),
+                                            SizedBox(height: 5.0),
+                                            GestureDetector(
+                                              child: Card(
+                                                child: ListTile(
+                                                  leading: Icon(Icons.cast_connected),
+                                                  title: Text('Bank Transfer'),
+
+                                                ),
+                                              ),
+                                              onTap: (){
+                                                setState(() {
+                                                  if(bank_show == false)
+                                                  {
+                                                    bank_show = true;
+                                                    payMethod = "transfer";
+                                                    payText = "Submit";
+                                                    pick_show = false;
+                                                    wall_show = false;
+                                                    delivery_show = false;
+                                                    change2 = Colors.white;
+                                                    change = Colors.white;
+
+                                                  }
+                                                  else{
+                                                    bank_show = false;
+                                                    payMethod = "transfer";
+                                                    payText = "Submit";
+                                                    pick_show = false;
+                                                    wall_show = false;
+                                                    delivery_show = false;
+                                                    change2 = Colors.white;
+                                                    change = Colors.white;
+
+                                                  }
+
+
+                                                });
+                                              },
+                                            ),
+                                            SizedBox(height: 5.0),
+                                            bank_show == true ? _bankForm() : SizedBox.shrink(),
                                           ],
                                         ),
                                         SizedBox(height: 5.0),
@@ -940,10 +1097,12 @@ class PayState extends State<Pay>
                                                 change2 = Colors.white;
                                                 payMethod = "pick";
                                                 payText = "Make Payment";
+                                                bank_show = false;
 
                                               }
                                               else{
                                                 pick_show = false;
+                                                bank_show = false;
                                                 payMethod = 'pick';
                                                 change = Colors.white;
                                                 change2 = Colors.white;
@@ -957,9 +1116,8 @@ class PayState extends State<Pay>
                                         ),
                                         SizedBox(height: 5.0),
                                         pick_show == true ? _buildCard() : SizedBox.shrink(),
-                                        SizedBox(height: 5.0),
 
-                                        SizedBox(height: 16.0),
+                                        SizedBox(height: 22.0),
                                       ],
                                     ),
                                   ),

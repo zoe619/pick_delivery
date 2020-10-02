@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pick_delivery/model/bank.dart';
 import 'package:pick_delivery/model/bouquet.dart';
 import 'package:pick_delivery/model/channel.dart';
 import 'package:pick_delivery/model/contact.dart';
@@ -148,6 +149,39 @@ class DatabaseService
   {
     final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
     return parsed.map<Contact>((json)=>Contact.fromJson(json)).toList();
+
+  }
+
+  Future<List<Bank>> getBank()async
+  {
+
+
+    try{
+
+      String url = "https://monikonnect.com/new_mobile/pizza/getBank.php";
+      http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
+
+      if(response.statusCode == 200)
+      {
+
+        List<Bank> list = parseResponseBank(response.body);
+        return list;
+
+      }
+      else{
+        return  List<Bank>();
+      }
+
+    }
+    catch(err){
+      return List<Bank>();
+    }
+  }
+
+  List<Bank> parseResponseBank(String responseBody)
+  {
+    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+    return parsed.map<Bank>((json)=>Bank.fromJson(json)).toList();
 
   }
 
@@ -569,7 +603,7 @@ class DatabaseService
 
   }
 
-  updateStat(String id, String status)async
+  Future<List<dynamic>>updateStat(String id, String status)async
   {
 
     try{
@@ -584,19 +618,20 @@ class DatabaseService
         List result = json.decode(response.body);
         print(result);
         return result;
+
       }
       else{
 
         var error = json.decode(response.body);
-
         return error;
+
       }
 
 
     }
     catch(err)
     {
-      return err.toString();
+      return err;
     }
 
   }

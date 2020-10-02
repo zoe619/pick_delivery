@@ -137,9 +137,7 @@ class T1ListItem extends StatelessWidget
 
 
     status = model.status;
-    if(status == "transit"){
-      status = "Track location";
-    }
+
     var width = MediaQuery.of(context).size.width;
     return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -162,7 +160,7 @@ class T1ListItem extends StatelessWidget
                           text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.only(left: 16),
+                              padding: EdgeInsets.only(left: 35),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
