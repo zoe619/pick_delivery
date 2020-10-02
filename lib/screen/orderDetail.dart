@@ -78,13 +78,15 @@ class _OrderDetailState extends State<OrderDetail>
     String btnText;
     if(order.status == "awaiting pick-up")
     {
-      btnText = "Picked up";
-      setState(() {
+      btnText = "Start delivery";
+      setState(()
+      {
         btnStatus = order.status;
       });
     }
-    else if(order.status == "transit"){
-      btnText = "Delivered";
+    else if(order.status == "transit")
+    {
+      btnText = "End delivery";
       setState(() {
         btnStatus = order.status;
       });
@@ -272,7 +274,7 @@ class _OrderDetailState extends State<OrderDetail>
 
   }
 
-  _submit()
+  _submit() async
   {
 
      if(btnStatus == "completed"){
@@ -301,11 +303,14 @@ class _OrderDetailState extends State<OrderDetail>
 
       try
       {
-        String status;
+
         if(btnStatus == "awaiting pick-up")
         {
-          status = "transit";
-          List res = dbService.updateStat(id, status);
+          setState(() {
+            btnStatus = "transit";
+          });
+
+          List res = dbService.updateStat(id, btnStatus);
           Map<String, dynamic> map;
 
           for(int i = 0; i < res.length; i++)
@@ -327,8 +332,10 @@ class _OrderDetailState extends State<OrderDetail>
         }
         else if(btnStatus == "transit")
         {
-          status = "completed";
-          List res = dbService.updateStat(id, status);
+          setState(() {
+            btnStatus = "completed";
+          });
+          List res = dbService.updateStat(id, btnStatus);
           Map<String, dynamic> map;
 
           for(int i = 0; i < res.length; i++)

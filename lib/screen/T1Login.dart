@@ -99,8 +99,6 @@ class _T1LoginState extends State<T1Login>
         Provider.of<UserData>(context, listen: false).currentUserId = login;
 
 
-
-
         if(login != "")
         {
           Navigator.push(context, MaterialPageRoute(

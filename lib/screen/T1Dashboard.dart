@@ -376,7 +376,7 @@ class T1DashboardState extends State<T1Dashboard>
             style: TextStyle(fontSize: 18),
             decoration: InputDecoration(
               contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
-              hintText: 'optional note',
+              hintText: 'extra note',
 
             ))),
     );
@@ -451,19 +451,15 @@ class T1DashboardState extends State<T1Dashboard>
   _submit() async
   {
 
-     if(user.type == "Rider"){
-       Navigator.push(context, MaterialPageRoute(
-         builder: (_)=>RidersDashboard(email: user.email),
-       ));
-     }
-     else {
-       if (!_deliveryFormKey.currentState.validate() &&
-           !_pickFormKey.currentState.validate()
-           && !_noteFormKey.currentState.validate() &&
-           !_riderFormKey.currentState.validate()) {
-         SizedBox.shrink();
-       }
-       else if (_isLoading == false) {
+
+//     else {
+//       if (!_deliveryFormKey.currentState.validate() &&
+//           !_pickFormKey.currentState.validate()
+//           && !_noteFormKey.currentState.validate() &&
+//           !_riderFormKey.currentState.validate()) {
+//         SizedBox.shrink();
+//       }
+        if (_isLoading == false) {
          _scaffoldKey.currentState.showSnackBar(
              new SnackBar(duration: new Duration(seconds: 1),
                content:
@@ -482,31 +478,31 @@ class T1DashboardState extends State<T1Dashboard>
              ));
        }
        try {
-         if (_deliveryFormKey.currentState.validate() &&
-             _pickFormKey.currentState.validate()
-             && _noteFormKey.currentState.validate() &&
-             _riderFormKey.currentState.validate() && !_isLoading) {
-           _mapFormKey.currentState.save();
-           _deliveryFormKey.currentState.validate();
-           _pickFormKey.currentState.validate();
-           _noteFormKey.currentState.validate();
-           _riderFormKey.currentState.validate();
+//         if (_deliveryFormKey.currentState.validate() &&
+//             _pickFormKey.currentState.validate()
+//             && _noteFormKey.currentState.validate() &&
+//             _riderFormKey.currentState.validate() && !_isLoading) {
+//           _mapFormKey.currentState.save();
+//           _deliveryFormKey.currentState.validate();
+//           _pickFormKey.currentState.validate();
+//           _noteFormKey.currentState.validate();
+//           _riderFormKey.currentState.validate();
 
 
            Navigator.push(context, MaterialPageRoute(
                builder: (_) =>
-                   Pay(item: item,
-                       deliveryName: delivery_name,
-                       deliveryPhone: delivery_phone,
-                       deliveryEmail: delivery_email,
-                       note: note)
+                   Pay(item: Provider.of<UserData>(context, listen: false).pickItem,
+                       deliveryName: Provider.of<UserData>(context, listen: false).deliveryName,
+                       deliveryPhone: Provider.of<UserData>(context, listen: false).deliveryPhone,
+                       deliveryEmail: Provider.of<UserData>(context, listen: false).deliveryEmail,
+                       note: Provider.of<UserData>(context, listen: false).note)
            ));
-         }
+//         }
        }
        on PlatformException catch (err) {
          _showErrorDialog(err.message);
        }
-     }
+
   }
 
 
@@ -537,12 +533,8 @@ class T1DashboardState extends State<T1Dashboard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          user.type == "Customer" ?
                           Center(
                             child: text('Start a delivery', textColor: t1TextColorPrimary,
-                                fontSize: textSizeNormal, fontFamily: fontBold),
-                          ) : Center(
-                            child: text('All delivery', textColor: t1TextColorPrimary,
                                 fontSize: textSizeNormal, fontFamily: fontBold),
                           ),
                           SizedBox(height: 10),
@@ -894,9 +886,7 @@ class T1ListItem extends StatelessWidget
 
 
     status = model.status;
-    if(status == "transit"){
-      status = "Track location";
-    }
+
     var width = MediaQuery.of(context).size.width;
     return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

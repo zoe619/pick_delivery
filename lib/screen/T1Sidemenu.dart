@@ -164,7 +164,7 @@ class T1SideMenuState extends State<T1SideMenu>
                             builder: (_)=>Payments(email: user.email, user: user),
                           ));
                         },
-                        child: menuItem('Payments')) : SizedBox.shrink(),
+                        child: menuItem('Wallet')) : SizedBox.shrink(),
                     GestureDetector(
                       onTap: (){
                         Navigator.push(context, MaterialPageRoute(

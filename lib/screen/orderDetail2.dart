@@ -80,7 +80,7 @@ class _OrderDetailState extends State<OrderDetail2>
       btnText = "Awaiting pick-up";
     }
     else if(order.status == "transit"){
-      btnText = "Track riders location";
+      btnText = "Track rider";
     }
     else {
       btnText = order.status;
@@ -212,7 +212,7 @@ class _OrderDetailState extends State<OrderDetail2>
                           child: view(),
                         ),
                         SizedBox(height: 20.0),
-                        Material(
+                        order.status == "transit" ?   Material(
                             elevation: 2,
                             shadowColor: Colors.deepOrangeAccent[200],
                             borderRadius: new BorderRadius.circular(40.0),
@@ -225,7 +225,7 @@ class _OrderDetailState extends State<OrderDetail2>
                                   shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(40.0)),
                                   color: t1_colorPrimary, onPressed:_submit
                               ),
-                            )),
+                            )) : SizedBox.shrink(),
                       ],
                     ),
                   ),

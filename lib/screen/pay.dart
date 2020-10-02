@@ -13,6 +13,7 @@ import 'package:pick_delivery/screen/T1Dashboard.dart';
 import 'package:pick_delivery/screen/T1Listing.dart';
 import 'package:pick_delivery/screen/T1Sidemenu.dart';
 import 'package:pick_delivery/screen/location.dart';
+import 'package:pick_delivery/screen/orders.dart';
 import 'package:pick_delivery/screen/pay2.dart';
 import 'package:pick_delivery/screen/riders.dart';
 import 'package:pick_delivery/services/database.dart';
@@ -142,6 +143,24 @@ class PayState extends State<Pay>
     });
   }
 
+  _dispose()
+  {
+    Provider.of<UserData>(context, listen: false).pickLatitude = null;
+    Provider.of<UserData>(context, listen: false).pickLongitude = null;
+    Provider.of<UserData>(context, listen: false).deliveryLatitude = null;
+    Provider.of<UserData>(context,listen: false).deliveryLongitude = null;
+    Provider.of<UserData>(context, listen: false).pickAddress = null;
+    Provider.of<UserData>(context, listen: false).deliveryAddress = null;
+    Provider.of<UserData>(context, listen: false).riderName = null;
+    Provider.of<UserData>(context, listen: false).riderEmail = null;
+    Provider.of<UserData>(context, listen: false).riderPhone = null;
+    Provider.of<UserData>(context, listen: false).deliveryName = null;
+    Provider.of<UserData>(context, listen: false).deliveryEmail = null;
+    Provider.of<UserData>(context, listen: false).deliveryPhone = null;
+    Provider.of<UserData>(context, listen: false).pickItem = null;
+    Provider.of<UserData>(context, listen: false).note = null;
+
+  }
   _showErrorDialog(String errMessage, String status)
   {
     showDialog(
@@ -155,10 +174,9 @@ class PayState extends State<Pay>
                   child: Text('Ok'),
                   onPressed: (){
 
-//                    Navigator.popAndPushNamed(context, "/subPage");
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (BuildContext context) => T1Dashboard()),
+                      MaterialPageRoute(builder: (BuildContext context) => Orders()),
                       ModalRoute.withName('/'),
                     );
 
@@ -204,6 +222,9 @@ class PayState extends State<Pay>
     {
 
       String payStatus = "wallet";
+      setState(() {
+        amount  = 19;
+      });
 
 
       List res = await dbService.addDelivery(
@@ -229,8 +250,10 @@ class PayState extends State<Pay>
       }
       else
       {
+
         String type = "sub";
         double amount = price.ceilToDouble() + 50;
+
 
         List res = await Provider.of<DatabaseService>(context, listen: false).wallet(senderEmail, type, amount);
 
@@ -257,8 +280,8 @@ class PayState extends State<Pay>
           );
 
           DatabaseService.updateWallet(user);
-
-          _showErrorDialog(map['msg'], map['status']);
+          _dispose();
+          _showErrorDialog("Delivery Request Submitted. You can monitor your request status on the request history screen of the app", map['status']);
         }
 
       }
@@ -326,6 +349,7 @@ class PayState extends State<Pay>
       }
       else
       {
+        _dispose();
         _showErrorDialog(map['msg'], map['status']);
 
       }
@@ -531,6 +555,7 @@ class PayState extends State<Pay>
           }
           else
           {
+            _dispose();
             _showErrorDialog(map['msg'], map['status']);
 
           }

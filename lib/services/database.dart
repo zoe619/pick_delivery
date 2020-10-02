@@ -582,7 +582,7 @@ class DatabaseService
       if(response.statusCode == 200)
       {
         List result = json.decode(response.body);
-
+        print(result);
         return result;
       }
       else{
