@@ -134,7 +134,9 @@ class _ContactUsState extends State<ContactUs>
                         SizedBox(height: 8),
                         rowHeading("Address"),
                         SizedBox(height: 16),
-                        contact.address != null ? profileText(contact.address) : SizedBox.shrink(),
+                        contact.address != null ? Text(contact.address, maxLines: 3, style: TextStyle(
+                          fontSize: 15.0
+                        ),) : SizedBox.shrink(),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                           child: view(),

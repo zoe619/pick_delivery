@@ -452,41 +452,13 @@ class T1DashboardState extends State<T1Dashboard>
   {
 
 
-//     else {
-//       if (!_deliveryFormKey.currentState.validate() &&
-//           !_pickFormKey.currentState.validate()
-//           && !_noteFormKey.currentState.validate() &&
-//           !_riderFormKey.currentState.validate()) {
-//         SizedBox.shrink();
-//       }
-        if (_isLoading == false) {
-         _scaffoldKey.currentState.showSnackBar(
-             new SnackBar(duration: new Duration(seconds: 1),
-               content:
-               new Row(
-                 children: <Widget>[
-                   Platform.isIOS
-                       ? new CupertinoActivityIndicator()
-                       : new CircularProgressIndicator(),
-                   new Text("please wait...")
-                 ],
-               ),
-               action: new SnackBarAction(
-                   label: 'Ok',
-                   onPressed: () =>
-                       _scaffoldKey.currentState.removeCurrentSnackBar()),
-             ));
-       }
+
+        if(Provider.of<UserData>(context,listen: false).riderName == null)
+        {
+           return;
+        }
        try {
-//         if (_deliveryFormKey.currentState.validate() &&
-//             _pickFormKey.currentState.validate()
-//             && _noteFormKey.currentState.validate() &&
-//             _riderFormKey.currentState.validate() && !_isLoading) {
-//           _mapFormKey.currentState.save();
-//           _deliveryFormKey.currentState.validate();
-//           _pickFormKey.currentState.validate();
-//           _noteFormKey.currentState.validate();
-//           _riderFormKey.currentState.validate();
+
 
 
            Navigator.push(context, MaterialPageRoute(

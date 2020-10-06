@@ -385,7 +385,7 @@ class PaymentState extends State<Payments>
     var map = Map<String, dynamic>();
     map['email'] = widget.email;
     map['amount'] = amounts.toString();
-    String url = 'https://monikonnect/new_mobile/pizza/initialize.php';
+    String url = 'https://jahmbatsonlogistics.com/new_mobile/pizza/initialize.php';
     String accessCode;
     try
     {
@@ -420,7 +420,7 @@ class PaymentState extends State<Payments>
     var map = Map<String, dynamic>();
     map['reference'] = reference;
     _updateStatus(reference, 'Verifying...');
-    String url = 'https://monikonnect.com/new_mobile/pizza/verify.php';
+    String url = 'https://jahmbatsonlogistics.com/new_mobile/pizza/verify.php';
     List result;
     try
     {

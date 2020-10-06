@@ -19,6 +19,7 @@ dependencies:
   cloud_firestore: ^0.14.0+2
   firebase_auth: ^0.18.0+1
   firebase_storage: ^4.0.0
+  firebase_database: ^4.1.0
   flutter_paystack: ^1.0.3
   flutter_launcher_icons: ^0.8.0
   email_validator: ^1.0.5
@@ -54,6 +55,8 @@ dependencies:
   location: ^3.0.2
   google_maps_webservice: ^0.0.18
   flutter_google_places: ^0.2.6
+  geoflutterfire: ^2.2.1
+  rxdart: ^0.24.1
   after_layout:
   liquid_pull_to_refresh:
   expandable:

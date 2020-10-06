@@ -137,9 +137,6 @@ class T1ListItem extends StatelessWidget
 
 
     status = model.status;
-    if(status == "transit"){
-      status = "Track location";
-    }
     var width = MediaQuery.of(context).size.width;
     return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -162,7 +159,7 @@ class T1ListItem extends StatelessWidget
                           text(model.item, fontSize: textSizeMedium, maxLine: 2, textColor: t1TextColorPrimary),
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.only(left: 18),
+                              padding: EdgeInsets.only(left: 45),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
@@ -170,7 +167,7 @@ class T1ListItem extends StatelessWidget
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
                                       text(model.riderName, textColor: t1TextColorPrimary, fontFamily: fontBold, fontSize: textSizeNormal, maxLine: 2),
-                                      text(model.time, fontSize: textSizeMedium, maxLine: 3, textColor: t1TextColorPrimary),
+
                                     ],
                                   ),
                                   text(model.riderPhone, fontSize: textSizeLargeMedium, textColor: t1TextColorPrimary, fontFamily: fontMedium),
@@ -181,6 +178,7 @@ class T1ListItem extends StatelessWidget
                         ],
                         mainAxisAlignment: MainAxisAlignment.start,
 
+
                       ),
                       SizedBox(
                         height: 16,
@@ -190,6 +188,7 @@ class T1ListItem extends StatelessWidget
                         children: <Widget>[
 
                           text(status, fontSize: textSizeLargeMedium, textColor: t1_colorPrimary, fontFamily: fontMedium),
+                          text(model.time, fontSize: textSizeMedium, maxLine: 3, textColor: t1TextColorPrimary),
                         ],
                       ),
                     ],

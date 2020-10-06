@@ -684,7 +684,7 @@ class PayState extends State<Pay>
     var map = Map<String, dynamic>();
     map['email'] = senderEmail;
     map['amount'] = amounts.toString();
-    String url = 'https://monikonnect/new_mobile/pizza/initialize.php';
+    String url = 'https://jahmbatsonlogistics.com/new_mobile/pizza/initialize.php';
     String accessCode;
     try
     {
@@ -719,7 +719,7 @@ class PayState extends State<Pay>
     var map = Map<String, dynamic>();
     map['reference'] = reference;
     _updateStatus(reference, 'Verifying...');
-    String url = 'https://monikonnect.com/new_mobile/pizza/verify.php';
+    String url = 'https://jahmbatsonlogistics.com/new_mobile/pizza/verify.php';
     List result;
     try
     {
@@ -833,7 +833,9 @@ class PayState extends State<Pay>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text('Account Name'),
-                Text('$_accountName')
+                Text('$_accountName', maxLines: 2, style: TextStyle(
+                  fontSize: 10.0
+                ),)
               ],
             ),
             SizedBox(height: 5.0),

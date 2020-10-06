@@ -31,7 +31,24 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+//    name: 'locations',
+//    options: Platform.isIOS || Platform.isMacOS
+//        ? FirebaseOptions(
+//      appId: '1:957005560748:android:23e30282d01d64ab7e1809',
+//      apiKey: 'AIzaSyCHe07MQTagRYPDPy2zbvg-kfZqVGp36iU',
+//      projectId: 'pick-2fa58',
+//      messagingSenderId: '957005560748',
+//      databaseURL: 'https://pick-2fa58.firebaseio.com/',
+//    )
+//        : FirebaseOptions(
+//      appId: '1:957005560748:android:23e30282d01d64ab7e1809',
+//      apiKey: 'AIzaSyCHe07MQTagRYPDPy2zbvg-kfZqVGp36iU',
+//      projectId: 'pick-2fa58',
+//      messagingSenderId: '957005560748',
+//      databaseURL: 'https://pick-2fa58.firebaseio.com/',
+    );
+
    runApp(
      MultiProvider(
        providers: [

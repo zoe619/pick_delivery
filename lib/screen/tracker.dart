@@ -1,22 +1,22 @@
 import 'dart:async';
-import 'dart:collection';
-
-import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:geocoder/geocoder.dart';
-import 'package:geolocator/geolocator.dart';
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/places.dart';
-import 'package:pick_delivery/model/user_data.dart';
-import 'package:pick_delivery/screen/T1Dashboard.dart';
+import 'package:location/location.dart';
+import 'package:pick_delivery/model/order.dart';
+import 'package:pick_delivery/utilities/constant.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
-import 'package:pick_delivery/utils/T1Constant.dart';
-import 'package:pick_delivery/utils/T1Widget.dart';
-import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
+import 'package:rxdart/rxdart.dart';
+
 
 class Tracker extends StatefulWidget
 {
+  final String id;
+  final Order order;
+//  final double pickLatitude, pickLongitude, deliveryLatitude, deliveryLongitude;
+  Tracker({this.id, this.order});
 
   @override
   _TrackerState createState() => _TrackerState();
@@ -24,232 +24,193 @@ class Tracker extends StatefulWidget
 
 class _TrackerState extends State<Tracker>
 {
+  GoogleMapController _mapController;
+  Location _location = new Location();
+  Geoflutterfire geo = Geoflutterfire();
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  Stream<dynamic> _query;
+  StreamSubscription _streamSubscription;
 
-  GoogleMapController mapController;
-  static LatLng _initialPosition;
-  static LatLng _lastPosition = _initialPosition;
-  Position _lastVisitedPosition;
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polyLines = {};
-  Position _position;
-  StreamSubscription<Position> _streamSubscription;
-  Address _address;
-  TextEditingController locationController = new TextEditingController();
-  TextEditingController destinationController = new TextEditingController();
-  MapType _currentMapType = MapType.normal;
-  Set<Marker> allMarkers = {};
-  BitmapDescriptor _markerIcon;
 
-  final locationScaffoldKey = GlobalKey<ScaffoldState>();
-
-  GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: "AIzaSyD6dxWCuUM3KXxzuaDFn8KErN4-U2AWIIo");
-
-  var _finalAddress;
-
-  Set<Marker> _markers2 = HashSet<Marker>();
+  final radius = BehaviorSubject<double>.seeded(200.0);
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _getUserLocation();
-
+    _addGeoPoint();
   }
-
-
-
   @override
   Widget build(BuildContext context)
   {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          key: locationScaffoldKey,
-          appBar: AppBar(
-            title: Center(child: Text('Pick delivery',
-              style: TextStyle(
-                  color: t1TextColorPrimary
-              ),)),
-            backgroundColor: t1_white,
-
-          ),
-          body: _initialPosition == null ? Container(
-            alignment: Alignment.center,
-            child: Center(
-              child: CircularProgressIndicator(),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: t1_colorPrimary,
+        title: const Text('Pick delivery Tracker'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: _mapController == null
+                ? null
+                : () {
+              _animateToUser();
+            },
+            icon: Icon(Icons.home),
+          )
+        ],
+      ),
+      body: Stack(
+        children: <Widget>[
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(double.parse(widget.order.pickLatitude), double.parse(widget.order.pickLongitude)),
+              zoom: 15
             ),
-          ) :
-
-          Stack(
-            children: <Widget>[
-              GoogleMap(
-                initialCameraPosition: CameraPosition(target: _initialPosition, zoom: 10.0),
-                onMapCreated: onCreated,
-                myLocationEnabled: true,
-                mapType: MapType.normal,
-                compassEnabled: true,
-                markers: _markers,
-                onCameraMove: _onCameraMove,
-                onCameraIdle: _onCameraIdle,
-                zoomControlsEnabled: true,
-                onTap: (coordinates)
-                {
-                  mapController.animateCamera(CameraUpdate.newLatLng(coordinates));
-                  _addMarker(coordinates);
-
-
-                },
-              ),
-              Positioned(
-                top: 15.0,
-                right: 15.0,
-                left: 15.0,
-                child: Container(
-                  height: 50.0,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3.0),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(1.0, 5.0),
-                            blurRadius: 15.0,
-                            spreadRadius: 3
-                        )
-                      ]
-
-                  ),
-                ),
-              ),
-
-              Positioned(
-                bottom: 15.0,
-                right: 15.0,
-                left: 15.0,
-                child: Container(
-                  height: 50.0,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3.0),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(1.0, 5.0),
-                            blurRadius: 15.0,
-                            spreadRadius: 3
-                        )
-                      ]
-
-                  ),
-                ),
-              ),
-            ],
+            onMapCreated: _onMapCreated,
+            myLocationEnabled: true,
+            mapType: MapType.hybrid,
+            compassEnabled: true,
           ),
-        ));
-  }
+//          Positioned(
+//            bottom: 50,
+//            right: 10,
+//            child: FlatButton(
+//              child: Icon(Icons.pin_drop, color: Colors.white),
+//              color: Colors.green,
+//              onPressed:(){},
+//
+//            ),
+//          ),
+          Positioned(
+            bottom: 50,
+            left: 10,
+            child: Slider(
+              min: 100.0,
+              max: 500.0,
+              divisions: 4,
+              value: radius.value,
+              label: 'Radius ${radius.value}km',
+              activeColor: Colors.green,
+              inactiveColor: Colors.green.withOpacity(0.2),
+              onChanged: _updateQuery,
 
+            ),
+          )
+        ],
 
-  void onCreated(GoogleMapController controller)
-  {
-    setState(() {
-      mapController = controller;
-    });
-  }
-
-  void _onCameraMove(CameraPosition position)
-  {
-    setState(() {
-      _lastPosition = position.target;
-
-    });
-
-  }
-  _onCameraIdle(){
-    setState(() {
-      _lastPosition = _lastPosition;
-
-    });
-  }
-  _onMapTypePressed(){
-    setState(() {
-      _currentMapType = _currentMapType == MapType.normal ? MapType.satellite : MapType.normal;
-    });
-  }
-  static final CameraPosition _position1 = CameraPosition(
-      bearing: 192.833,
-      target: _lastPosition,
-      tilt: 59.440,
-      zoom: 11.0
-
-  );
-
-  Future<void> _gotoPosition1()async
-  {
-//    final GoogleMapController controller = await mapController.future;
-    mapController.animateCamera(CameraUpdate.newCameraPosition(_position1));
-
-
-  }
-  Widget button(Function function, IconData icon){
-    return FloatingActionButton(
-      onPressed: function,
-      materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
-      child: Icon(icon, size: 36.0),
+      ),
     );
   }
 
-  _addMarker(coordinates)
+  _onMapCreated(GoogleMapController controller)
   {
-    Uuid id = Uuid();
+    _startQuery();
+     setState(() {
+       _mapController = controller;
+     });
+  }
+
+  Future<Uint8List>_getMarker()async
+  {
+    final ByteData markerIcon =
+    await DefaultAssetBundle.of(context).load("images/theme1/bike2.png");
+    return markerIcon.buffer.asUint8List();
+  }
+
+
+  Future<void> _addMarker(double lat, double lng, String name) async
+  {
+    final Uint8List markerIcon = await _getMarker();
+    final id = MarkerId(lat.toString() + lng.toString());
+    final _marker = Marker(
+      markerId: id,
+      position: LatLng(lat, lng),
+      icon: BitmapDescriptor.fromBytes(markerIcon),
+      infoWindow: InfoWindow(title: '$name', snippet: '$lat,$lng'),
+    );
     setState(() {
-      _markers.add(Marker(
-        position: coordinates,
-        markerId: MarkerId(id.toString()),
-      ));
+      markers[id] = _marker;
     });
-
   }
 
 
-
-
-  void _getUserLocation() async
+  _animateToUser()async
   {
 
-
-    bool isLocationServiceEnable  = await isLocationServiceEnabled();
-    _lastVisitedPosition = await getLastKnownPosition();
-    if(isLocationServiceEnable){
-      Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-      setState(() {
-        _initialPosition = LatLng(position.latitude, position.longitude);
-        if(_initialPosition == null) {
-          _initialPosition = LatLng(_lastVisitedPosition.latitude, _lastVisitedPosition.longitude);
-        }
-      });
-
-    }
-
-
-
-  }
-
-  Future<Address>convertCoordinatesToAddress(Coordinates coordinates) async{
-    var address = Geocoder.local.findAddressesFromCoordinates(coordinates);
-    return address.asStream().forEach((element)
+    _location.onLocationChanged.listen((LocationData currentLocation)
     {
-      return element.first;
+      _mapController.animateCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(currentLocation.latitude, currentLocation.longitude),
+            zoom: 17.0
+          ))
+      );
+      // Use current location
     });
-
   }
 
-  void onError(PlacesAutocompleteResponse response)
+  Future<DocumentReference> _addGeoPoint() async
   {
-    locationScaffoldKey.currentState.showSnackBar(
-      SnackBar(content: Text(response.errorMessage)),
-    );
+    var pos = await _location.getLocation();
+    GeoFirePoint point = geo.point(latitude: pos.latitude, longitude: pos.longitude);
+    return locationsRef.add({
+      'position': point.data,
+      'name': 'pick delivery',
+       'id': widget.id
+    });
+  }
+
+  _updateQuery(double value)
+  {
+     final zoomMap = {
+       100.0 : 12.0,
+       200.0 : 10.0,
+       300.0 : 7.0,
+       400.0 : 6.0,
+       500.0 : 7.0
+     };
+     final zoom = zoomMap[value];
+     _mapController.moveCamera(CameraUpdate.zoomTo(zoom));
+     setState(() {
+       radius.add(value);
+     });
+  }
+
+  _updateMarkers(List<DocumentSnapshot> document)
+  {
+    _mapController.dispose();
+    document.forEach((DocumentSnapshot doc)
+    {
+      final GeoPoint point = doc.data()['position']['geopoint'];
+      double distance = doc.data()['distance'];
+      _addMarker(point.latitude, point.longitude,doc.data()['name']);
+    });
+  }
+
+  _startQuery()async{
+    var pos = await _location.getLocation();
+    double latitude = pos.latitude;
+    double longitude = pos.longitude;
+
+    var queryRef = locationsRef.where('id', isEqualTo: widget.id);
+    GeoFirePoint center = geo.point(latitude: double.parse(widget.order.pickLatitude),
+        longitude: double.parse(widget.order.pickLongitude));
+    
+    _streamSubscription = radius.switchMap((rad) {
+      return geo.collection(collectionRef: queryRef).within(
+          center: center,
+          radius: double.parse(widget.order.distance) * 2,
+          field: 'position',
+          strictMode: true
+      );
+    }).listen(_updateMarkers);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _mapController.dispose();
+    _streamSubscription.cancel();
   }
 
 }

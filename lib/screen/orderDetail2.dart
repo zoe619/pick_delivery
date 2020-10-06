@@ -1,10 +1,11 @@
 import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pick_delivery/model/contact.dart';
 import 'package:pick_delivery/model/order.dart';
+import 'package:pick_delivery/model/user.dart';
 import 'package:pick_delivery/screen/tracker.dart';
 import 'package:pick_delivery/services/database.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
@@ -32,16 +33,35 @@ class _OrderDetailState extends State<OrderDetail2>
   initState()
   {
     super.initState();
+    _getUserId();
 
   }
+
   String btnStatus;
-
-
+  String _userId;
   Widget counter(String counter, String counterName)
   {
     return Column(
       children: <Widget>[profile(counter), text(counterName, textColor: t1TextColorPrimary, fontSize: textSizeMedium, fontFamily: fontMedium)],
     );
+  }
+
+  _getUserId()
+  {
+
+    FirebaseFirestore.instance
+        .collection('users').where('email', isEqualTo: widget.orders.riderEmail)
+        .get()
+        .then((QuerySnapshot querySnapshot) => {
+        querySnapshot.docs.forEach((doc)
+        {
+          setState(() {
+            _userId = doc.id;
+          });
+
+        })
+     });
+
   }
 
   @override
@@ -55,14 +75,12 @@ class _OrderDetailState extends State<OrderDetail2>
         children: <Widget>[
           SingleChildScrollView(
 
-            child: Expanded(
-              child: Column(
-                children: <Widget>[
-                  widget.orders != null ? _buildProfileInfo(widget.orders)  : CircularProgressIndicator(),
-                  Divider(),
+            child: Column(
+              children: <Widget>[
+                widget.orders != null ? _buildProfileInfo(widget.orders)  : Center(child: CircularProgressIndicator()),
+                Divider(),
 
-                ],),
-            ),
+              ],),
 
 
           ),
@@ -85,6 +103,9 @@ class _OrderDetailState extends State<OrderDetail2>
     else {
       btnText = order.status;
     }
+    setState(() {
+      btnStatus = order.status;
+    });
     final profileImg = new Container(
         margin: new EdgeInsets.symmetric(horizontal: 16.0),
         alignment: FractionalOffset.center,
@@ -270,6 +291,7 @@ class _OrderDetailState extends State<OrderDetail2>
   _submit()
   {
 
+    print(btnStatus);
     if(btnStatus == "completed"){
       return;
     }
@@ -283,7 +305,7 @@ class _OrderDetailState extends State<OrderDetail2>
       {
 
          Navigator.push(context, MaterialPageRoute(
-           builder: (_)=>Tracker(),
+           builder: (_)=>Tracker(id: _userId, order: widget.orders),
          ));
       }
 

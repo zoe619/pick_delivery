@@ -125,7 +125,7 @@ class DatabaseService
 
     try{
 
-      String url = "https://monikonnect.com/new_mobile/pizza/getContact.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/getContact.php";
       http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
@@ -158,7 +158,7 @@ class DatabaseService
 
     try{
 
-      String url = "https://monikonnect.com/new_mobile/pizza/getBank.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/getBank.php";
       http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
@@ -191,7 +191,7 @@ class DatabaseService
 
     try{
 
-      String url = "https://monikonnect.com/new_mobile/pizza/getRider.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/getRider.php";
       http.Response response = await http.get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
@@ -226,7 +226,7 @@ class DatabaseService
 
     try{
 
-      String url = "https://monikonnect.com/new_mobile/pizza/getOrder.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/getOrder.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
@@ -255,7 +255,7 @@ class DatabaseService
 
     try{
 
-      String url = "https://monikonnect.com/new_mobile/pizza/getOrderType.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/getOrderType.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 
       if(response.statusCode == 200)
@@ -516,7 +516,7 @@ class DatabaseService
       map['type'] = type;
       map['address'] = address;
       map['fee'] = fee;
-      String url = "https://monikonnect.com/new_mobile/pizza/signup.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/signup.php";
       http.Response res = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 
       if(res.statusCode == 200)
@@ -546,7 +546,7 @@ class DatabaseService
       map['fee'] = fee;
       map['address'] = address;
       map['license'] = license;
-      String url = "https://monikonnect.com/new_mobile/pizza/update.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/update.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       if(response.statusCode == 200)
       {
@@ -579,7 +579,7 @@ class DatabaseService
       map['type'] = type;
       map['amount'] = amount.toString();
 
-      String url = "https://monikonnect.com/new_mobile/pizza/wallet.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/wallet.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       if(response.statusCode == 200)
       {
@@ -611,7 +611,7 @@ class DatabaseService
       map['id'] = id;
       map['status'] = status;
 
-      String url = "https://monikonnect.com/new_mobile/pizza/updateStat.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/updateStat.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       if(response.statusCode == 200)
       {
@@ -665,7 +665,7 @@ class DatabaseService
       map['payStatus'] = payStatus;
       map['item'] = item;
 
-      String url = "https://monikonnect.com/new_mobile/pizza/sub.php";
+      String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/sub.php";
 
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
 
@@ -884,6 +884,13 @@ class DatabaseService
       return User.fromDoc(userDocSnapshot);
     }
     return User();
+
+  }
+
+  getUserWithEmail(String email) async
+  {
+
+    return usersRef.where('email', isEqualTo: email).get();
 
   }
 
