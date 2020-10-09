@@ -60,7 +60,7 @@ class _PaystackPayState extends State<PaystackPay>
   String senderName, senderEmail;
   int amount;
   String userId;
-  User user = new User();
+  Users user = new Users();
   double pickLatitude, pickLongitude, destinationLatitude, destinationLongitude;
 
   @override
@@ -75,7 +75,7 @@ class _PaystackPayState extends State<PaystackPay>
   }
   _setupProfileUser() async
   {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    Users profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
       senderName = user.name;

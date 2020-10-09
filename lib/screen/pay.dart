@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -81,7 +82,7 @@ class PayState extends State<Pay>
   TextEditingController riderController = new TextEditingController();
 
   String userId;
-  User user = new User();
+  Users user = new Users();
 
   bool _inProgress = false;
   String _cardNumber;
@@ -98,7 +99,7 @@ class PayState extends State<Pay>
   String _reference;
   String _wallet;
   String _accountName, _accountNumber, _bank;
-
+  String _userId, _riderId;
 
   String d;
   @override
@@ -110,6 +111,8 @@ class PayState extends State<Pay>
     change = Colors.white;
     _setupProfileUser();
     _getBank();
+
+
   }
 
   _getBank()async
@@ -123,9 +126,11 @@ class PayState extends State<Pay>
     });
   }
 
+
+
   _setupProfileUser() async
   {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    Users profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
       senderEmail = user.email;
@@ -156,6 +161,8 @@ class PayState extends State<Pay>
         widget.item = Provider.of<UserData>(context, listen: false).pickItem;
         widget.note = Provider.of<UserData>(context, listen: false).note;
 
+
+
     });
   }
 
@@ -177,6 +184,8 @@ class PayState extends State<Pay>
     Provider.of<UserData>(context, listen: false).note = null;
 
   }
+
+
   _showErrorDialog(String errMessage, String status)
   {
     showDialog(
@@ -285,12 +294,13 @@ class PayState extends State<Pay>
           price = price + 50;
           int prices = int.parse(_wallet) - price;
           prices = prices.abs();
-          User user = User(
+          Users user = Users(
             id: userId,
             wallet: prices.toString(),
           );
 
           DatabaseService.updateWallet(user);
+          DatabaseService.sendId(Provider.of<UserData>(context,listen: false).riderId);
           _dispose();
           _showErrorDialog("Delivery Request Submitted. You can monitor your request status on the request history screen of the app", map['status']);
         }
@@ -330,12 +340,7 @@ class PayState extends State<Pay>
 
       String payStatus = "Not paid";
 
-//      print(senderEmail + " "+ pickAddress + " " + " " +distance.toString() + " " +price.toString() + " "+
-//          pickLatitude.toString() + " "+ pickLongitude.toString() + " "+
-//          destinationLatitude.toString() + " " + destinationLongitude.toString() + " " +widget.deliveryName + " "+
-//          widget.deliveryEmail + " "+ widget.deliveryPhone + " " +
-//          deliveryAddress + " " +widget.note + " " + riderName + " "+ riderEmail + " " +riderPhone + " "+
-//          payMethod + " "+ payStatus + " "+ widget.item);
+
 
       List res = await dbService.addDelivery(
           senderEmail, pickAddress, distance, amount, pickLatitude, pickLongitude,
@@ -362,6 +367,7 @@ class PayState extends State<Pay>
       {
         _dispose();
         _showErrorDialog(map['msg'], map['status']);
+        DatabaseService.sendId(Provider.of<UserData>(context,listen: false).riderId);
 
       }
 
@@ -422,6 +428,7 @@ class PayState extends State<Pay>
       }
       else
       {
+        DatabaseService.sendId(Provider.of<UserData>(context,listen: false).riderId);
         _dispose();
         _showErrorDialog(map['msg'], map['status']);
 
@@ -631,6 +638,7 @@ class PayState extends State<Pay>
           }
           else
           {
+            DatabaseService.sendId(Provider.of<UserData>(context,listen: false).riderId);
             _dispose();
             _showErrorDialog(map['msg'], map['status']);
 

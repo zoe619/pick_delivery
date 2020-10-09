@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -90,6 +91,8 @@ class T1ListItem extends StatelessWidget
   {
     this.model = model;
     this.pos = pos;
+
+
   }
 
   @override
@@ -105,15 +108,31 @@ class T1ListItem extends StatelessWidget
               Container(
                 padding: EdgeInsets.all(16),
                 child: GestureDetector(
-                  onTap: ()
+                  onTap: () async
                   {
+
+
+                    await FirebaseFirestore.instance
+                        .collection('users').where('email', isEqualTo: model.email)
+                        .get()
+                        .then((QuerySnapshot querySnapshot) => {
+                      querySnapshot.docs.forEach((doc)
+                      {
+                        Provider.of<UserData>(context, listen: false).riderId = doc.id;
+
+                      })
+                    });
+
                    Provider.of<UserData>(context, listen: false).riderName = model.name;
                    Provider.of<UserData>(context, listen: false).riderEmail = model.email;
                    Provider.of<UserData>(context, listen: false).riderPhone = model.phone;
                    Provider.of<UserData>(context, listen: false).amount = model.fee;
-                   Navigator.push(context, MaterialPageRoute(
-                     builder: (_)=>T1Dashboard()
-                   ));
+                   if(Provider.of<UserData>(context,listen: false).riderId != null){
+                     Navigator.push(context, MaterialPageRoute(
+                         builder: (_)=>T1Dashboard()
+                     ));
+                   }
+
                   },
                   child: Column(
                     children: <Widget>[

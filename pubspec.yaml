@@ -57,6 +57,7 @@ dependencies:
   flutter_google_places: ^0.2.6
   geoflutterfire: ^2.2.1
   rxdart: ^0.24.1
+  firebase_messaging: ^7.0.3
   after_layout:
   liquid_pull_to_refresh:
   expandable:
@@ -80,6 +81,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "images/theme1/logo.png"
 
 flutter:
 

@@ -98,16 +98,18 @@ class _T1LoginState extends State<T1Login>
         String login = await authService.login(email, password);
         Provider.of<UserData>(context, listen: false).currentUserId = login;
 
-
-        if(login != "")
-        {
-          Navigator.push(context, MaterialPageRoute(
-            builder: (_)=>T1Dashboard(),
-          ));
-        }
-        else{
-          _showErrorDialog("Please check your email to verify your account", "error");
-        }
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_)=>T1Dashboard(),
+        ));
+//        if(login != "")
+//        {
+//          Navigator.push(context, MaterialPageRoute(
+//            builder: (_)=>T1Dashboard(),
+//          ));
+//        }
+//        else{
+//          _showErrorDialog("Please check your email to verify your account", "error");
+//        }
 
 
 
@@ -163,7 +165,7 @@ class _T1LoginState extends State<T1Login>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 30),
-                Image.asset(t1_ic_ring, height: 100, width: 100),
+                Image.asset('images/theme1/logo.png', height: 200, width: 200),
                 SizedBox(height: 16),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[formHeading(t1_lbl_sign_in_header),
                   GestureDetector(

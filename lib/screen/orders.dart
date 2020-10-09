@@ -36,7 +36,7 @@ class OrdersState extends State<Orders>
 {
   List<T1Model> mListings;
   List<Order> _orders;
-  User user = new User();
+  Users user = new Users();
   String senderEmail;
   String userId;
 
@@ -60,7 +60,7 @@ class OrdersState extends State<Orders>
   }
   _setupProfileUser() async
   {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    Users profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
       senderEmail = user.email;

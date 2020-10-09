@@ -21,7 +21,7 @@ class T1ProfileUpdate extends StatefulWidget
 
   @override
   _T1ProfileUpdateState createState() => _T1ProfileUpdateState();
-  User user;
+  Users user;
   T1ProfileUpdate({this.user});
 }
 
@@ -30,7 +30,7 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
   final _formKey = GlobalKey<FormState>();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  String name, email, phone, fee, address, license, type;
+  String name, email, phone, fee, address, license, regNo, type;
 
   TextEditingController nameController = new TextEditingController();
   TextEditingController emailController = new TextEditingController();
@@ -38,10 +38,11 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
   TextEditingController feeController = new TextEditingController();
   TextEditingController addressController = new TextEditingController();
   TextEditingController licenseController = new TextEditingController();
+  TextEditingController regController = new TextEditingController();
   bool _isLoading = false;
   String userId;
 
-  User user = new User();
+  Users user = new Users();
   @override
   initState(){
     super.initState();
@@ -56,6 +57,8 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
       feeController.text = user.fee;
       addressController.text = user.address;
       licenseController.text = user.license;
+      regController.text = user.regNo;
+
     }
 
 
@@ -124,10 +127,11 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
             fee = "0";
             address = "0";
             license = "0";
+            regNo = "0";
           });
         }
 //        update user info in mysql server database
-        List res = await dbService.updateUser(name, email, phone, fee, address, license);
+        List res = await dbService.updateUser(name, email, phone, fee, address, license, regNo);
         Map<String, dynamic> map;
         for(int i = 0; i < res.length; i++)
         {
@@ -143,13 +147,14 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
         {
 
           // update user in firebase
-          User user = User(
+          Users user = Users(
               id: userId,
               name: name,
               phone: phone,
               fee: fee,
               address: address,
-              license: license
+              license: license,
+              regNo: regNo
           );
 
           DatabaseService.updateUserFirebase(user);
@@ -189,7 +194,7 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 30),
-                Image.asset(t1_ic_ring, height: 100, width: 100),
+                Image.asset('images/theme1/logo.png', height: 100, width: 100),
                 SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -361,6 +366,33 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
                                 decoration: InputDecoration(
                                   contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
                                   hintText: 'license',
+                                  filled: true,
+                                  fillColor: t1_edit_text_background,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40),
+                                    borderSide: const BorderSide(color: t1_edit_text_background, width: 0.0),
+                                  ),
+                                ),
+                              )
+                          ),
+                          SizedBox(height: 16),
+                          Padding(
+                              padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                              child: TextFormField(
+                                controller: regController,
+                                keyboardType: TextInputType.text,
+                                validator:(input)=>
+                                input.trim().isEmpty  ? 'Input field is empty' : null,
+                                onSaved:(input)=>regNo = input,
+                                style: TextStyle(fontSize: textSizeLargeMedium, fontFamily: fontRegular),
+                                obscureText: false,
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.fromLTRB(24, 18, 24, 18),
+                                  hintText: 'Bike registration number',
                                   filled: true,
                                   fillColor: t1_edit_text_background,
                                   enabledBorder: OutlineInputBorder(

@@ -463,7 +463,7 @@ class DatabaseService
 
   }
 
-  static Future<User> getSingleUser(String email)async
+  static Future<Users> getSingleUser(String email)async
   {
 
     try{
@@ -472,17 +472,17 @@ class DatabaseService
 
       final response = await http.post(ROOT, body: map);
       if(response.statusCode == 200){
-        User user = parseResponseSingle(response.body);
+        Users user = parseResponseSingle(response.body);
         return user;
       }
       else
         {
-        return  User();
+        return  Users();
       }
 
     }
     catch(err){
-      return User();
+      return Users();
     }
   }
 
@@ -499,10 +499,10 @@ class DatabaseService
 
 
 
-  static User parseResponseSingle(String responseBody)
+  static Users parseResponseSingle(String responseBody)
   {
     final parsed = json.decode(responseBody).cast<Map<String, dynamic>();
-    return parsed.map<User>((json)=> MobileCustomer.fromJson(json)).toList();
+    return parsed.map<Users>((json)=> MobileCustomer.fromJson(json)).toList();
 
   }
 
@@ -535,7 +535,7 @@ class DatabaseService
     }
   }
 
-  updateUser(String name, String email, String phone, String fee, String address, String license)async
+  updateUser(String name, String email, String phone, String fee, String address, String license, String regNo)async
   {
 
     try{
@@ -546,6 +546,7 @@ class DatabaseService
       map['fee'] = fee;
       map['address'] = address;
       map['license'] = license;
+      map['regNo'] = regNo;
       String url = "https://jahmbatsonlogistics.com/new_mobile/pizza/update.php";
       http.Response response = await http.post(Uri.encodeFull(url), body: map, headers: {"Accept": "application/json"});
       if(response.statusCode == 200)
@@ -856,16 +857,16 @@ class DatabaseService
   }
 
   //   function to retrieve user from firestore based on userId
-  Future<User> getUser(String userId) async
+  Future<Users> getUser(String userId) async
   {
 
     DocumentSnapshot userDoc = await usersRef.doc(userId).get();
-    return User.fromDoc(userDoc);
+    return Users.fromDoc(userDoc);
   }
 
 
   Future<Map<String, dynamic>> getUserDetails(String id) async{
-    User user = await getUser(id);
+    Users user = await getUser(id);
     Map<String, dynamic> userMap =
     {
       'name': user.name,
@@ -876,14 +877,14 @@ class DatabaseService
   }
 
   //   function to retrieve user from firestore based on userId
-  Future<User> getUserWithId(String userId) async
+  Future<Users> getUserWithId(String userId) async
   {
     DocumentSnapshot userDocSnapshot = await usersRef.doc(userId).get();
     if(userDocSnapshot.exists)
     {
-      return User.fromDoc(userDocSnapshot);
+      return Users.fromDoc(userDocSnapshot);
     }
-    return User();
+    return Users();
 
   }
 
@@ -894,31 +895,49 @@ class DatabaseService
 
   }
 
-  static void updateUserFirebase(User user)
+  static void updateUserFirebase(Users user)
   {
     usersRef.doc(user.id).update({
       'name' : user.name,
       'phone':user.phone,
       'fee': user.fee,
       'address': user.address,
-      'license': user.license
+      'license': user.license,
+       'reg_no': user.regNo
     });
   }
 
-  static void updateWallet(User user)
+  static void updateWallet(Users user)
   {
     usersRef.doc(user.id).update({
       'wallet' : user.wallet
     });
   }
 
+  String getUserId(String email)
+  {
+
+    String id;
+    FirebaseFirestore.instance
+        .collection('users').where('email', isEqualTo: email)
+        .get()
+        .then((QuerySnapshot querySnapshot) => {
+      querySnapshot.docs.forEach((doc)
+      {
+
+          id = doc.id;
+
+      })
+    });
+     return id;
+  }
 
 
-
-
-
-
-
+  static sendId(String id){
+    notificationsRef.doc().set({
+      'userId':id
+    });
+  }
 
 
 

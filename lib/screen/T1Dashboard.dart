@@ -18,6 +18,7 @@ import 'package:pick_delivery/screen/pay2.dart';
 import 'package:pick_delivery/screen/riders.dart';
 import 'package:pick_delivery/screen/ridersDashboard.dart';
 import 'package:pick_delivery/services/database.dart';
+import 'package:pick_delivery/services/push_notification.dart';
 import 'package:pick_delivery/utils/T1Colors.dart';
 import 'package:pick_delivery/utils/T1Constant.dart';
 import 'package:pick_delivery/utils/T1Extension.dart';
@@ -70,6 +71,8 @@ class T1DashboardState extends State<T1Dashboard>
   Icon rider_icon = Icon(Icons.add);
   double distance, amount;
 
+  PushNotification _fcm = new PushNotification();
+
 
 
   TextEditingController pickController = new TextEditingController();
@@ -84,7 +87,7 @@ class T1DashboardState extends State<T1Dashboard>
   TextEditingController noteController = new TextEditingController();
 
   String userId;
-  User user = new User();
+  Users user = new Users();
 
   List<T1Model> mListings;
   List<Order> _orders;
@@ -96,6 +99,7 @@ class T1DashboardState extends State<T1Dashboard>
   void initState() {
     // TODO: implement initState
     super.initState();
+    _fcm.initialize();
     userId = Provider.of<UserData>(context, listen: false).currentUserId;
     _setupProfileUser();
 
@@ -141,7 +145,7 @@ class T1DashboardState extends State<T1Dashboard>
 
   _setupProfileUser() async
   {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    Users profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
     });
@@ -390,12 +394,11 @@ class T1DashboardState extends State<T1Dashboard>
             onTap: ()
             {
               bool ret = _saveDeliveryForm();
-              if(ret)
-              {
+
                 Navigator.push(context, MaterialPageRoute(
                   builder: (_) => Riders(),
                 ));
-              }
+
             },
             readOnly: true,
             controller: riderController,
@@ -469,7 +472,7 @@ class T1DashboardState extends State<T1Dashboard>
                        deliveryEmail: Provider.of<UserData>(context, listen: false).deliveryEmail,
                        note: Provider.of<UserData>(context, listen: false).note)
            ));
-//         }
+
        }
        on PlatformException catch (err) {
          _showErrorDialog(err.message);

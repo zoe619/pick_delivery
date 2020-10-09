@@ -31,7 +31,7 @@ class Payments extends StatefulWidget
 
 
   final String email;
-  final User user;
+  final Users user;
 
   Payments({this.email, this.user});
 
@@ -68,7 +68,7 @@ class PaymentState extends State<Payments>
   bool pick_show, bill_show;
 
   String userId;
-  User user = new User();
+  Users user = new Users();
 
   bool _inProgress = false;
   String _cardNumber;
@@ -322,7 +322,7 @@ class PaymentState extends State<Payments>
           {
             // update user in firebase
             int price = int.parse(widget.user.wallet) + _price;
-            User user = User(
+            Users user = Users(
                 id: widget.user.id,
                 wallet: price.toString(),
             );

@@ -26,7 +26,7 @@ class _T1ProfileState extends State<T1Profile>
 
   String userId;
 
-  User user = new User();
+  Users user = new Users();
   @override
   initState()
   {
@@ -36,7 +36,7 @@ class _T1ProfileState extends State<T1Profile>
   }
   _setupProfileUser() async
   {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    Users profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
     });
@@ -52,18 +52,19 @@ class _T1ProfileState extends State<T1Profile>
   Widget build(BuildContext context)
   {
     changeStatusColor(t1_app_background);
-
     return Scaffold(
       backgroundColor: t1_app_background,
       body: FutureBuilder(
         future: usersRef.doc(userId).get(),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if(!snapshot.hasData){
+        builder: (BuildContext context, AsyncSnapshot snapshot)
+        {
+          if(!snapshot.hasData)
+          {
             return Center(
               child: Platform.isIOS ? CupertinoActivityIndicator() : CircularProgressIndicator(),
             );
           }
-          User user = User.fromDoc(snapshot.data);
+          Users user = Users.fromDoc(snapshot.data);
           return ListView(
             children: <Widget>[
               _buildProfileInfo(user),
@@ -75,13 +76,13 @@ class _T1ProfileState extends State<T1Profile>
     );
   }
 
-  _buildProfileInfo(User user)
+  _buildProfileInfo(Users user)
   {
     final profileImg = new Container(
         margin: new EdgeInsets.symmetric(horizontal: 16.0),
         alignment: FractionalOffset.center,
         child: new CircleAvatar(
-          backgroundImage: AssetImage(t1_ic_user1),
+          backgroundImage: AssetImage('images/theme1/logo.png'),
           radius: 50,
         ));
     final profileContent = new Container(
@@ -152,6 +153,12 @@ class _T1ProfileState extends State<T1Profile>
                         ),
                         SizedBox(height: 8),
                         user.type == "Rider" ? user.license != null ? profileText(user.license) : SizedBox.shrink() : SizedBox.shrink(),
+                        SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                          child: view(),
+                        ),
+                        user.type == "Rider" ? user.regNo != null ? profileText(user.regNo) : SizedBox.shrink() : SizedBox.shrink(),
                       ],
                     ),
                   ),

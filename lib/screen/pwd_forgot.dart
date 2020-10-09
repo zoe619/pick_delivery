@@ -28,7 +28,7 @@ class _PwdResetState extends State<PwdReset>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 30),
-                Image.asset(t1_ic_ring, height: 100, width: 100),
+                Image.asset('images/theme1/logo.png', height: 100, width: 100),
                 SizedBox(height: 16),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[formHeading('Password reset/'),
                   GestureDetector(

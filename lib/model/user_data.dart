@@ -22,4 +22,5 @@ class UserData extends ChangeNotifier
     String deliveryEmail;
     String deliveryPhone;
     String note;
+    String riderId;
 }

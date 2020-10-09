@@ -39,7 +39,7 @@ class T1SideMenuState extends State<T1SideMenu>
   final Duration duration = Duration(milliseconds: 300);
   String userId;
 
-  User user = new User();
+  Users user = new Users();
   @override
   initState(){
     super.initState();
@@ -49,7 +49,7 @@ class T1SideMenuState extends State<T1SideMenu>
 
   _setupProfileUser() async
   {
-    User profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
+    Users profileUser  = await Provider.of<DatabaseService>(context, listen: false).getUserWithId(userId);
     setState(() {
       user = profileUser;
     });
@@ -106,7 +106,7 @@ class T1SideMenuState extends State<T1SideMenu>
                       child: Padding(
                         padding: const EdgeInsets.all(3.0),
                         child: CircleAvatar(
-                          backgroundImage: AssetImage(t1_ic_user1),
+                          backgroundImage: AssetImage('images/theme1/logo.png'),
                           radius: width / 7,
                         ),
                       ),

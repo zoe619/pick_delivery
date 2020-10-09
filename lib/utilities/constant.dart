@@ -13,6 +13,7 @@ final FirebaseFirestore _db = FirebaseFirestore.instance;
 final usersRef = _db.collection('users');
 final tokensRef = _db.collection('DeviceTokens');
 final locationsRef = _db.collection('locations');
+final notificationsRef = _db.collection('notifications');
 
 
 final FirebaseStorage _storage = FirebaseStorage.instance;

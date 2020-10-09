@@ -140,7 +140,8 @@ class _T1Signup extends State<T1Signup>
         {
           String license = "";
           String wallet = "0";
-          String res =  await authService.signUp(name, email, password, phone, user_type, address, charge, license, wallet);
+          String regNo = "";
+          String res =  await authService.signUp(name, email, password, phone, user_type, address, charge, license, wallet, regNo);
 
 
           if(res != null)
@@ -234,7 +235,7 @@ class _T1Signup extends State<T1Signup>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 30),
-                Image.asset(t1_ic_ring, height: 100, width: 100),
+                Image.asset('images/theme1/logo.png', height: 200, width: 200),
                 SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

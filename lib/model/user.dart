@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User
+class Users
 {
 
   String id;
@@ -12,10 +12,13 @@ class User
   String fee;
   String address;
   String license;
+  String regNo;
+  String fcm;
 
 
 
-  User({this.id, this.name, this.email, this.phone, this.type, this.wallet, this.fee, this.address, this.license});
+  Users({this.id, this.name, this.email, this.phone, this.type, this.wallet, this.fee, this.address,
+    this.license, this.regNo, this.fcm});
 
 //  factory User.fromJson(Map<String, dynamic> json)
 //  {
@@ -29,9 +32,9 @@ class User
 //
 //    );
 //  }
-  factory User.fromDoc(DocumentSnapshot doc)
+  factory Users.fromDoc(DocumentSnapshot doc)
   {
-    return User(
+    return Users(
       id: doc.id,
       name: doc.get('name'),
       email: doc.get('email'),
@@ -40,7 +43,9 @@ class User
       wallet: doc.get('wallet'),
       fee: doc.get('fee'),
       address: doc.get('address'),
-      license: doc.get('license')
+      license: doc.get('license'),
+      regNo: doc.get('reg_no'),
+      fcm: doc.get('fcm')
 
     );
   }
