@@ -65,12 +65,12 @@ class RidersState extends State<Riders>
                   shrinkWrap: true,
                   itemBuilder: (context, index)
                   {
-                    if(_riders.length != 0)
+                    if(_riders.length > 0)
                     {
                       return T1ListItem(_riders[index], index);
                     }
                     else{
-                      return SizedBox.shrink();
+                      return Center(child: Text('No Rider Available at the moment'));
                     }
 
                   }),
