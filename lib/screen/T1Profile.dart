@@ -82,9 +82,10 @@ class _T1ProfileState extends State<T1Profile>
         margin: new EdgeInsets.symmetric(horizontal: 16.0),
         alignment: FractionalOffset.center,
         child: new CircleAvatar(
-          backgroundImage: AssetImage('images/theme1/logo.png'),
+          backgroundImage: AssetImage('images/theme1/logo2.jpeg'),
           radius: 50,
-        ));
+        )
+    );
     final profileContent = new Container(
       margin: new EdgeInsets.only(top: 55.0),
       decoration: boxDecoration(radius: 10, showShadow: true),

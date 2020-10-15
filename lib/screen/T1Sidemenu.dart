@@ -106,7 +106,7 @@ class T1SideMenuState extends State<T1SideMenu>
                       child: Padding(
                         padding: const EdgeInsets.all(3.0),
                         child: CircleAvatar(
-                          backgroundImage: AssetImage('images/theme1/logo.png'),
+                          backgroundImage: AssetImage('images/theme1/logo2.jpeg'),
                           radius: width / 7,
                         ),
                       ),

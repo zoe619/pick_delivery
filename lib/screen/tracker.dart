@@ -186,7 +186,8 @@ class _TrackerState extends State<Tracker>
     });
   }
 
-  _startQuery()async{
+  _startQuery()async
+  {
     var pos = await _location.getLocation();
     double latitude = pos.latitude;
     double longitude = pos.longitude;

@@ -194,7 +194,10 @@ class _T1ProfileUpdateState extends State<T1ProfileUpdate>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 30),
-                Image.asset('images/theme1/logo.png', height: 100, width: 100),
+                new CircleAvatar(
+                  backgroundImage: AssetImage('images/theme1/logo2.jpeg'),
+                  radius: 50,
+                ),
                 SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

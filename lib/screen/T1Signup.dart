@@ -235,7 +235,10 @@ class _T1Signup extends State<T1Signup>
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(height: 30),
-                Image.asset('images/theme1/logo.png', height: 200, width: 200),
+                new CircleAvatar(
+                  backgroundImage: AssetImage('images/theme1/logo2.jpeg'),
+                  radius: 50,
+                ),
                 SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
